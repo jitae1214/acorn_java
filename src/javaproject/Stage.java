@@ -6,11 +6,12 @@ public interface Stage {
 	void 도착(int stageNum);
 }
 
-class QuizStage implements Stage{
+class EventStage implements Stage{
 	// 도착하면 그 칸의 정보가 출력
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
+		System.out.println("현재 칸 : [E]-이벤트");
 	}
 	
 	// 현재 위치를 받아 문제 풀이 하는 메서드
@@ -28,20 +29,17 @@ class ForceMove implements Stage {
 	public ForceMove(int forceStage) {
 		this.forceStage = forceStage;
 	}
-	
-	// 이런건 지워도 됌
-	public ForceMove() {
-		
-	}
 
 	// getter 강제 이동할 칸수
 	public int getForceStage() {
 		return forceStage;
 	}
 	
+	// 도착하면 그 칸의 정보가 출력
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
+		System.out.println("현재 칸 : [F]-강제이동");
 	}
 }
 
@@ -64,6 +62,7 @@ class BuffStage implements Stage{
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
+		System.out.println("현재 칸 : [B]-아이템");
 	}
 }
 
@@ -73,14 +72,16 @@ class GhostStage implements Stage {
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
+		System.out.println("현재 칸 : [G]-유령");
 	}
 }
 
 //일반칸
-class NomalStage implements Stage {
+class NormalStage implements Stage {
 
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
+		System.out.println("현재 칸 : [N]-일반");
 	}
 }

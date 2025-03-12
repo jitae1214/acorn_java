@@ -9,7 +9,6 @@ public class Quiz {
 		this.content = content;
 		this.answer = answer;
 	}
-	// 지워도 됌
 	public Quiz() {
 		
 	}
