@@ -38,9 +38,9 @@ class GameMaster {
         board.add(new NormalStage());      // 1: 시작
         board.add(new NormalStage());      // 2: 일반칸
         board.add(new EventStage());      // 3: 이벤트
-        board.add(new GhostStage());      // 4: 유령
+        board.add(new BuffStage());       // 4: 아이템
         board.add(new EventStage());      // 5: 이벤트
-        board.add(new BuffStage());       // 6: 아이템
+        board.add(new GhostStage());      // 6: 유령
         board.add(new EventStage());      // 7: 이벤트
 
         // 8-14번 칸
@@ -163,7 +163,25 @@ class GameMaster {
 				}
             }
             else if(currentStage instanceof EventStage) {
+            	boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
             	
+            	if(eventQuiz) {
+            		System.out.println("성공");
+            	}else {
+            		System.out.println("실패");
+            		ghostMove();
+                	System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
+                	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
+                	if (ghostLoc == getUserLoc()) {
+    					System.out.println("유령에게 잡혔습니다.");
+    					System.out.println("게임이 종료되었습니다.");
+    					System.exit(0);
+    				}
+            	}
+            	
+            	System.out.println("엔터를 누르면 주사위를 굴립니다...");
+                int dice = diceRoll();  // 주사위 굴리기
+                userMove(dice);  // 유저 이동
             }
             else if(currentStage instanceof NormalStage) {
             	System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
