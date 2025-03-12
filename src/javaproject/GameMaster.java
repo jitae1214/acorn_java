@@ -12,6 +12,7 @@ class GameMaster {
     private Random random;          // 주사위 용 랜덤 객체
     private int ghostLoc;           // 유령 위치
     private int ghostDistance;     // 유령 이동 거리
+    public static final int GHOST_FORCE_MOVE = -9999; // 유령 강제 이동
 
     public GameMaster() {
         this.board = new ArrayList<>();
@@ -64,7 +65,7 @@ class GameMaster {
         // 22-30번 칸
         board.add(new NormalStage());      // 22: 일반칸
         board.add(new NormalStage());      // 23: 일반칸
-        board.add(new ForceMove(-ghostForceLoc()));      // 24: 강제이동 !유령 앞으로 이동
+        board.add(new ForceMove(GHOST_FORCE_MOVE));      // 24: 강제이동 !유령 앞으로 이동
         board.add(new EventStage());      // 25: 이벤트
         board.add(new GhostStage());      // 26: 유령
         board.add(new BuffStage());       // 27: 아이템 !유령 이동칸 2배
@@ -141,10 +142,18 @@ class GameMaster {
             }
             else if (currentStage instanceof ForceMove) {
                 int forceMove = ((ForceMove) currentStage).getForceStage();
-                userMove(forceMove);
-                System.out.println(forceMove + "칸 강제 이동!");
+             // 유령 위치로 이동하는 특수 케이스 처리
+                if (forceMove == GHOST_FORCE_MOVE) {
+                    forceMove = -(userLoc - ghostLoc) + 1;
+                    System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
+                } else {
+                    System.out.println(forceMove + "칸 강제 이동!");
+                }
                 
-                System.out.println(ghostForceLoc());
+                userMove(forceMove);
+
+                
+                //System.out.println(ghostForceLoc());
             	
 //            	  int forceMove = getGhostLoc() + 1;
 //            	  getUserLoc();
@@ -173,7 +182,7 @@ class GameMaster {
     }
     
     public int ghostForceLoc() {
-    	return getUserLoc() - (getUserLoc() - getGhostLoc()) - 1;
+    	return getUserLoc() - (getUserLoc() - getGhostLoc()) + 1;
     }
 
     // 골 도착 확인
