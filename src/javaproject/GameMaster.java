@@ -13,6 +13,7 @@ class GameMaster {
     private int ghostLoc;           // 유령 위치
     private int ghostDistance;     // 유령 이동 거리
     public static final int GHOST_FORCE_MOVE = -9999; // 유령 강제 이동
+   
 
     public GameMaster() {
         this.board = new ArrayList<>();
@@ -41,7 +42,7 @@ class GameMaster {
         board.add(new EventStage());      // 3: 이벤트
         board.add(new GhostStage());      // 4: 유령
         board.add(new EventStage());      // 5: 이벤트
-        board.add(new BuffStage());       // 6: 아이템
+        board.add(new BuffStage("double"));  // 6: 아이템 !이동거리 2배
         board.add(new EventStage());      // 7: 이벤트
 
         // 8-14번 칸
@@ -49,7 +50,7 @@ class GameMaster {
         board.add(new ForceMove(-1));     // 9: 강제이동
         board.add(new GhostStage());      // 10: 유령
         board.add(new EventStage());      // 11: 이벤트
-        board.add(new BuffStage());       // 12: 아이템
+        board.add(new BuffStage("half")); // 12: 아이템 !이동거리 반감
         board.add(new ForceMove(2));      // 13: 강제이동
         board.add(new EventStage());      // 14: 이벤트
 
@@ -68,7 +69,7 @@ class GameMaster {
         board.add(new ForceMove(GHOST_FORCE_MOVE));      // 24: 강제이동 !유령 앞으로 이동
         board.add(new EventStage());      // 25: 이벤트
         board.add(new GhostStage());      // 26: 유령
-        board.add(new BuffStage());       // 27: 아이템 !유령 이동칸 2배
+        board.add(new BuffStage("gDouble"));       // 27: 아이템 !유령 이동칸 2배
         board.add(new GhostStage());      // 28: 유령
         board.add(new EventStage());      // 29: 이벤트
         board.add(new NormalStage());      // 30: 골
@@ -78,6 +79,7 @@ class GameMaster {
 //    public int diceRoll() {
 //        return random.nextInt(6) + 1;
 //    }
+    
     // 디버깅용 주사위 스캐너로 원하는 값 입력
     public int diceRoll() {
     	Scanner scanner = new Scanner(System.in);
@@ -108,9 +110,11 @@ class GameMaster {
         return userLoc;
     }
     // 유령 이동 메서드
-    public int ghostMove() {
-    	ghostLoc = ghostLoc + ghostDistance;
-    	return ghostLoc;    	    	
+    public int ghostMove(int ghostDistance) {
+    	int actualGhostDistance = applyGhostBuff(ghostDistance);
+    	
+    	ghostLoc = ghostLoc + actualGhostDistance;
+    	return actualGhostDistance;	    	
     }
 
     // 버프 효과를 적용하는 private 메서드
@@ -128,6 +132,15 @@ class GameMaster {
                 return distance;
         }
     }
+    
+	private int applyGhostBuff(int ghostDistance) {
+		switch (buff.toLowerCase()) {
+		case "gDouble":
+			return ghostDistance * 2;		
+		default:
+			return ghostDistance;
+		}
+	}
 
     // 현재 위치의 칸 정보 확인
     public void nowLocation() {
@@ -138,11 +151,28 @@ class GameMaster {
             // 각 스테이지 타입별 특수 효과 처리
             if (currentStage instanceof BuffStage) {
                 buff = ((BuffStage) currentStage).getBuff();
-                System.out.println("버프 효과 획득: " + buff);
+                switch(buff) {
+				case "double":
+					System.out.println("이동거리 2배 효과를 획득했습니다.");
+					break;
+				case "half":
+					System.out.println("이동거리 반감 효과를 획득했습니다.");
+					break;
+				case "plus1":
+					System.out.println("이동거리 +1 효과를 획득했습니다.");
+					break;
+				case "minus1":
+					System.out.println("이동거리 -1 효과를 획득했습니다.");
+					break;
+				case "gDouble":
+					System.out.println("유령 이동거리 2배 효과를 획득했습니다.");
+					break;
+                }
             }
+            // 강제 이동 파트
             else if (currentStage instanceof ForceMove) {
                 int forceMove = ((ForceMove) currentStage).getForceStage();
-             // 유령 위치로 이동하는 특수 케이스 처리
+             // 유령 위치 앞으로 이동하는 케이스 파트
                 if (forceMove == GHOST_FORCE_MOVE) {
                     forceMove = -(userLoc - ghostLoc) + 1;
                     System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
@@ -152,18 +182,12 @@ class GameMaster {
                 
                 userMove(forceMove);
 
-                
-                //System.out.println(ghostForceLoc());
-            	
-//            	  int forceMove = getGhostLoc() + 1;
-//            	  getUserLoc();
-//            	  setUserLoc(forceMove);
-//            	  System.out.println(forceMove + "칸 강제 이동! 유령 앞으로 이동합니다!");
+
             	  
             }
             else if(currentStage instanceof GhostStage) {
-            	ghostMove();
-            	System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
+            	ghostMove(ghostDistance);            	
+            	System.out.println("유령이 이동했습니다.");
             	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
 				if (ghostLoc == getUserLoc()) {
 					System.out.println("유령에게 잡혔습니다.");
@@ -248,28 +272,7 @@ class GameMaster {
         System.out.println("현재 버프: " + buff);
     }
 
-//    private void printNumbers(int start, int end) {
-//        System.out.print("   ");
-//        for (int i = start; i <= end; i++) {
-//            System.out.printf("%3d ", i);
-//        }
-//        System.out.println();
-//    }
-//
-//    private void printRow(int start, int end, boolean reverse) {
-//        System.out.print("   ");
-//        if (reverse) {
-//            for (int i = end - 1; i >= start; i--) {
-//                printSquare(i);
-//                if (i > start) System.out.print(" - ");
-//            }
-//        } else {
-//            for (int i = start; i < end; i++) {
-//                printSquare(i);
-//                if (i < end - 1) System.out.print(" - ");
-//            }
-//        }
-//    }
+
 
     private void printSquare(int index) {
         String symbol;
@@ -303,20 +306,11 @@ class GameMaster {
     public int getUserLoc() {
         return userLoc;
     }
-
-	public void setUserLoc(int userLoc) {
-		this.userLoc = userLoc;
-	}
-
-    public String getBuff() {
-        return buff;
-    }
-
-    public void setBuff(String buff) {
-        this.buff = buff;
-    }
+	   
     
 	public int getGhostLoc() {
 		return ghostLoc;
 	}
+	
+	
 }
