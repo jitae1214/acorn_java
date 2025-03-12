@@ -8,11 +8,11 @@ class GameMaster {
     private ArrayList<Stage> board;  // 보드 맵
     private int userLoc;            // 유저 현재위치
     private String buff;            // 유저 이동거리 변화 효과
-    private static final int BOARD_SIZE = 30;  // 보드 크기
+    private final int BOARD_SIZE = 30;  // 보드 크기
     private Random random;          // 주사위 용 랜덤 객체
     private int ghostLoc;           // 유령 위치
     private int ghostDistance;     // 유령 이동 거리
-    public static final int GHOST_FORCE_MOVE = -9999; // 유령 강제 이동
+    final int GHOST_FORCE_MOVE = -9999; // 유령 강제 이동
    
 
     public GameMaster() {
@@ -77,6 +77,7 @@ class GameMaster {
 
     // 주사위 던지는 메서드
     public int diceRoll() {
+    	buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
         return random.nextInt(6) + 1;
     }
     
@@ -189,7 +190,7 @@ class GameMaster {
             	ghostMove(ghostDistance);            	
             	System.out.println("유령이 이동했습니다.");
             	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-				if (ghostLoc == getUserLoc()) {
+				if (ghostLoc == userLoc) {
 					System.out.println("유령에게 잡혔습니다.");
 					System.out.println("게임이 종료되었습니다.");
 					System.exit(0);
@@ -205,9 +206,7 @@ class GameMaster {
         }
     }
     
-    public int ghostForceLoc() {
-    	return getUserLoc() - (getUserLoc() - getGhostLoc()) + 1;
-    }
+    
 
     // 골 도착 확인
     public boolean checkGoal() {
@@ -323,15 +322,6 @@ class GameMaster {
     }
 
 
-    // getter/setter 메서드들
-    public int getUserLoc() {
-        return userLoc;
-    }
-	   
-    
-	public int getGhostLoc() {
-		return ghostLoc;
-	}
-	
+
 	
 }
