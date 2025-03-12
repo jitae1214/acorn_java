@@ -39,7 +39,7 @@ class ForceMove implements Stage {
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
-		System.out.println("현재 칸 : [F]-강제이동");
+		System.out.println("현재 칸 : [F]-강제이동!!!");
 	}
 }
 
