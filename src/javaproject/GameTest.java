@@ -21,7 +21,6 @@ public class GameTest {
 
             game.userMove(dice);
             game.printBoard();
-            game.nowLocation();
         }
 
         System.out.println("\n=== 게임 클리어! ===");

@@ -76,16 +76,16 @@ class GameMaster {
     }
 
     // 주사위 던지는 메서드
-//    public int diceRoll() {
-//        return random.nextInt(6) + 1;
-//    }
+    public int diceRoll() {
+        return random.nextInt(6) + 1;
+    }
     
     // 디버깅용 주사위 스캐너로 원하는 값 입력
-    public int diceRoll() {
-    	Scanner scanner = new Scanner(System.in);
-    	int dice = scanner.nextInt();
-    	return dice;
-    }
+//    public int diceRoll() {
+//    	Scanner scanner = new Scanner(System.in);
+//    	int dice = scanner.nextInt();
+//    	return dice;
+//    }
 
     // 유저 움직이는 메서드
     public int userMove(int distance) {
