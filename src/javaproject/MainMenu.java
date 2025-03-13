@@ -36,7 +36,7 @@ public class MainMenu extends JFrame {
         initializeUI();
         initializeAnimationPositions();
         startGhostAnimation();
-        initializeSound();  // 사운드 초기화 추가
+        initializeSound();  // 사운드 초기화
     }
 
     private void initializeUI() {

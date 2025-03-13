@@ -133,20 +133,27 @@ public class GameGUI extends JFrame {
         
         ArrayList<Stage> board = game.getBoard();
         int margin = SQUARE_SIZE / 2;
-        int x = margin;
-        int y = margin;
-        int row = 0;
+        
+        // 미로 스타일의 레이아웃을 위한 설정
+        int cols = 6; // 가로 6칸
+        int rows = 5; // 세로 5칸
+        int startX = (boardPanel.getWidth() - (cols * (SQUARE_SIZE + margin))) / 2;
+        int startY = (boardPanel.getHeight() - (rows * (SQUARE_SIZE + margin))) / 2;
 
         Font boardFont = new Font("맑은 고딕", Font.BOLD, SQUARE_SIZE / 4);
         g2d.setFont(boardFont);
 
+        // 미로 연결선 그리기
+        g2d.setColor(new Color(100, 100, 100));
+        g2d.setStroke(new BasicStroke(3));
+        drawMazeConnections(g2d, startX, startY, margin);
+
+        // 각 칸 그리기
         for (int i = 0; i < BOARD_SIZE; i++) {
-            // 새로운 줄 시작
-            if (i > 0 && i % 10 == 0) {
-                row++;
-                x = margin;
-                y = margin + (row * (SQUARE_SIZE + margin));
-            }
+            int row = i / cols;
+            int col = i % cols;
+            int x = startX + col * (SQUARE_SIZE + margin);
+            int y = startY + row * (SQUARE_SIZE + margin);
 
             // 칸 그리기 (그림자 효과 추가)
             g2d.setColor(new Color(180, 180, 180));
@@ -163,33 +170,132 @@ public class GameGUI extends JFrame {
             int numberY = y + metrics.getHeight();
             g2d.drawString(number, numberX, numberY);
 
-            // 플레이어 위치 표시 (그라데이션 효과 추가)
+            // 플레이어 위치 표시 (캐릭터 형태로 변경)
             if (i == game.getUserLoc()) {
-                GradientPaint gradient = new GradientPaint(
-                    x + SQUARE_SIZE/4, y + SQUARE_SIZE/2,
-                    Color.YELLOW,
-                    x + SQUARE_SIZE*3/4, y + SQUARE_SIZE*3/4,
-                    new Color(255, 200, 0)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillOval(x + SQUARE_SIZE/4, y + SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
+                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             }
 
-
-            // 유령 위치 표시 (그라데이션 효과 추가)
+            // 유령 위치 표시 (귀여운 유령 형태로 변경)
             if (i == game.getGhostLoc()) {
-                GradientPaint gradient = new GradientPaint(
-                    x + SQUARE_SIZE/4, y + SQUARE_SIZE/2,
-                    Color.RED,
-                    x + SQUARE_SIZE*3/4, y + SQUARE_SIZE*3/4,
-                    new Color(180, 0, 0)
-                );
-                g2d.setPaint(gradient);
-                g2d.fillOval(x + SQUARE_SIZE/4, y + SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
+                drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             }
-
-            x += SQUARE_SIZE + margin;
         }
+    }
+
+    // 미로 연결선 그리기 메서드 추가
+    private void drawMazeConnections(Graphics2D g2d, int startX, int startY, int margin) {
+        // 미로 연결선 패턴 정의 (1은 연결, 0은 벽)
+        int[][] horizontalConnections = {
+            {1, 1, 1, 0, 1}, // 1행
+            {0, 1, 1, 1, 0}, // 2행
+            {1, 0, 1, 1, 1}, // 3행
+            {1, 1, 0, 1, 1}, // 4행
+            {1, 1, 1, 0, 1}  // 5행
+        };
+        
+        int[][] verticalConnections = {
+            {1, 0, 1, 1, 0, 1}, // 1열
+            {1, 1, 0, 1, 1, 0}, // 2열
+            {0, 1, 1, 0, 1, 1}, // 3열
+            {1, 0, 1, 1, 0, 1}, // 4열
+        };
+
+        // 가로 연결선 그리기
+        for (int row = 0; row < 5; row++) {
+            for (int col = 0; col < 5; col++) {
+                if (horizontalConnections[row][col] == 1) {
+                    int x1 = startX + col * (SQUARE_SIZE + margin) + SQUARE_SIZE;
+                    int y1 = startY + row * (SQUARE_SIZE + margin) + SQUARE_SIZE/2;
+                    g2d.drawLine(x1, y1, x1 + margin, y1);
+                }
+            }
+        }
+
+        // 세로 연결선 그리기
+        for (int row = 0; row < 4; row++) {
+            for (int col = 0; col < 6; col++) {
+                if (verticalConnections[row][col] == 1) {
+                    int x1 = startX + col * (SQUARE_SIZE + margin) + SQUARE_SIZE/2;
+                    int y1 = startY + row * (SQUARE_SIZE + margin) + SQUARE_SIZE;
+                    g2d.drawLine(x1, y1, x1, y1 + margin);
+                }
+            }
+        }
+    }
+
+    // 플레이어 캐릭터 그리기 메서드 추가
+    private void drawPlayer(Graphics2D g2d, int x, int y, int size) {
+        // 원본 설정 저장
+        Composite originalComposite = g2d.getComposite();
+        Stroke originalStroke = g2d.getStroke();
+
+        // 캐릭터 몸체 (동그란 모자를 쓴 형태)
+        g2d.setColor(new Color(255, 220, 0)); // 노란색 계열
+        g2d.fillOval(x, y + size/4, size, size/2); // 몸체
+
+        // 모자 그리기
+        g2d.setColor(new Color(50, 50, 255)); // 파란색 모자
+        g2d.fillArc(x - size/8, y, size + size/4, size/2, 0, 180);
+
+        // 얼굴 특징
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(2));
+        
+        // 눈
+        g2d.fillOval(x + size/3, y + size/3, size/6, size/6);
+        g2d.fillOval(x + size*2/3, y + size/3, size/6, size/6);
+        
+        // 웃는 입
+        g2d.drawArc(x + size/3, y + size/3, size/2, size/3, 0, -180);
+
+        // 설정 복구
+        g2d.setComposite(originalComposite);
+        g2d.setStroke(originalStroke);
+    }
+
+    // 유령 캐릭터 그리기 메서드 추가
+    private void drawGhost(Graphics2D g2d, int x, int y, int size) {
+        // 원본 설정 저장
+        Composite originalComposite = g2d.getComposite();
+        Stroke originalStroke = g2d.getStroke();
+
+        // 유령 몸체 (반투명 효과)
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f));
+        
+        // 그라데이션 효과
+        GradientPaint ghostGradient = new GradientPaint(
+            x, y, new Color(255, 100, 100),
+            x + size, y + size, new Color(200, 0, 0)
+        );
+        g2d.setPaint(ghostGradient);
+
+        // 유령 몸체 (둥근 상단과 물결무늬 하단)
+        int[] xPoints = new int[]{
+            x, x + size,
+            x + size, x + size*4/5, x + size*3/5, x + size*2/5, x + size/5, x
+        };
+        int[] yPoints = new int[]{
+            y + size/3, y + size/3,
+            y + size, y + size*4/5, y + size, y + size*4/5, y + size, y + size
+        };
+        
+        // 상단 부분 (둥근 형태)
+        g2d.fillArc(x, y, size, size*2/3, 0, 180);
+        // 하단 부분 (물결 모양)
+        g2d.fillPolygon(xPoints, yPoints, xPoints.length);
+
+        // 눈 (빛나는 효과)
+        g2d.setColor(Color.WHITE);
+        g2d.fillOval(x + size/4 - 2, y + size/3 - 2, size/4 + 4, size/4 + 4);
+        g2d.fillOval(x + size*2/3 - 2, y + size/3 - 2, size/4 + 4, size/4 + 4);
+
+        g2d.setColor(new Color(50, 0, 0));
+        g2d.fillOval(x + size/4, y + size/3, size/4, size/4);
+        g2d.fillOval(x + size*2/3, y + size/3, size/4, size/4);
+
+        // 설정 복구
+        g2d.setComposite(originalComposite);
+        g2d.setStroke(originalStroke);
     }
 
     /*
