@@ -15,13 +15,15 @@ public class Quiz {
 		
 	}
 	
-	
+	//content값 getter
 	public String getContent() {
 		return content;
 	}
+	//examplet값 getter
 	public String getExample() {
 		return example;
 	}
+	//answer값 getter
 	public String getAnswer() {
 		return answer;
 	}
