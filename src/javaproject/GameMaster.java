@@ -19,7 +19,7 @@ class GameMaster {
         this.userLoc = 0;  // 시작 위치
         this.ghostLoc = 0; // 유령 시작 위치
         this.ghostDistance = 3; // 유령 기본 이동 거리
-        this.buff = "normal";  // 기본 이동 효과
+        this.buff = "normal";  // 버프 초기값 설정
         this.random = new Random();
         this.mapManager = new MapManager();
         this.board = mapManager.selectAndLoadMap();
@@ -27,14 +27,8 @@ class GameMaster {
     }
 
     // 주사위 던지는 메서드
-//    public int diceRoll() {
-//        return random.nextInt(6) + 1;
-//    }
-    // 디버깅용 주사위 스캐너로 원하는 값 입력
     public int diceRoll() {
-        Scanner scanner = new Scanner(System.in);
-        int dice = scanner.nextInt();
-        return dice;
+        return random.nextInt(6) + 1;
     }
 
     // 유저 움직이는 메서드
@@ -68,6 +62,12 @@ class GameMaster {
 
     // 버프 효과를 적용하는 private 메서드
     private int applyBuff(int distance) {
+        // buff가 null이면 기본값 "normal"로 설정
+        if (buff == null) {
+            buff = "normal";
+            return distance;
+        }
+        
         switch(buff.toLowerCase()) {
             case "double":
                 return distance * 2;
@@ -307,5 +307,10 @@ class GameMaster {
     
     public int getGhostLoc() {
         return ghostLoc;
+    }
+
+    // 보드 getter 메서드 추가
+    public ArrayList<Stage> getBoard() {
+        return board;
     }
 }
