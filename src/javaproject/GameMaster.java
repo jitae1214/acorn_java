@@ -3,7 +3,7 @@ package javaproject;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
-
+//하하하하
 class GameMaster {
     private ArrayList<Stage> board;  // 보드 맵
     private int userLoc;            // 유저 현재위치
