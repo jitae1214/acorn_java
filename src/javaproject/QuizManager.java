@@ -58,24 +58,15 @@ public class QuizManager {
         }
     }
     
-    // 문제 출력 메서드
-//    void printQuiz(ArrayList<Quiz> level, int index) {
-//        Quiz quiz = level.get(index);
-//
-//        System.out.println(quiz.content);
-//        System.out.println(quiz.example);
-//        System.out.println(quiz.answer);
-//    }
-    
     // 문제풀이 실패하면 false 성공하면 true
 	static boolean answerCheck(int location) {
 		Scanner sc = new Scanner(System.in);
 		
 		//도착한 이벤트 칸의 난이도 판별
 		String difficulty;
-	    if (location > 0 && location < 10) {
+	    if (location > 0 && location <= 10) {
 	        difficulty = "EASY";
-	    } else if (location > 10 && location < 20) {
+	    } else if (location > 10 && location <= 20) {
 	        difficulty = "NORMAL";
 	    } else {
 	        difficulty = "HARD";
@@ -95,11 +86,11 @@ public class QuizManager {
 	    Quiz quiz = selectedList.get(randomIndex);
 
 	    // 문제 출력
-	    System.out.println("문제: " + quiz.getContent());
-	    System.out.println("보기: " + quiz.getExample());
+	    System.out.println(quiz.getContent());
+	    System.out.println(quiz.getExample());
 	    
 	    //정답 입력
-	    System.out.print("정답을 입력하세요: ");
+	    System.out.print("\n정답을 입력하세요: ");
 	    String userAnswer = sc.nextLine();
 
 	    // 정답 체크

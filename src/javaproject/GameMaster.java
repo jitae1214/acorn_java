@@ -170,9 +170,9 @@ class GameMaster {
             	boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
             	
             	if(eventQuiz) {
-            		System.out.println("정답입니다!!!");
+            		System.out.println("\n정답입니다!!!\n");
             	}else {
-            		System.out.println("오답입니다...");
+            		System.out.println("\n오답입니다...\n");
             		ghostMove();
                 	System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
                 	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");

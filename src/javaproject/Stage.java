@@ -11,7 +11,7 @@ class EventStage implements Stage{
 	@Override
 	public void 도착(int stageNum) {
 		System.out.println("현재 위치 : " + stageNum + "칸");
-		System.out.println("현재 칸 : [E]-이벤트");
+		System.out.println("현재 칸 : [E]-이벤트\n");
 	}
 	
 	// 현재 위치를 받아 문제 풀이 하는 메서드
