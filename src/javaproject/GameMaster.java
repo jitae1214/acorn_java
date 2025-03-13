@@ -14,6 +14,7 @@ class GameMaster {
     private int ghostDistance;     // 유령 이동 거리
     private String currentMapStyle; // 현재 맵 스타일
     private MapManager mapManager;  // 맵 관리자
+    static final int GHOST_FORCE_MOVE = -9999;
 
     public GameMaster() {
         this.userLoc = 0;  // 시작 위치
@@ -28,8 +29,15 @@ class GameMaster {
 
     // 주사위 던지는 메서드
     public int diceRoll() {
+    	buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
         return random.nextInt(6) + 1;
     }
+    
+//    public int diceRoll() {
+//    	Scanner sc = new Scanner(System.in);
+//    	int dice = sc.nextInt();
+//    	return dice;
+//    }
 
     // 유저 움직이는 메서드
     public int userMove(int distance) {
@@ -55,9 +63,11 @@ class GameMaster {
     }
 
     // 유령 이동 메서드
-    public int ghostMove() {
-        ghostLoc = ghostLoc + ghostDistance;
-        return ghostLoc;           
+    public int ghostMove(int ghostDistance) {
+    	int actualGhostDistance = applyGhostBuff(ghostDistance);
+    	
+    	ghostLoc = ghostLoc + actualGhostDistance;
+    	return actualGhostDistance;	    	
     }
 
     // 버프 효과를 적용하는 private 메서드
@@ -81,6 +91,15 @@ class GameMaster {
                 return distance;
         }
     }
+    
+    private int applyGhostBuff(int ghostDistance) {
+		switch (buff.toLowerCase()) {
+		case "gdouble":
+			return ghostDistance * 2;		
+		default:
+			return ghostDistance;
+		}
+	}
 
     // 현재 위치의 칸 정보 확인
     public void nowLocation() {
@@ -95,14 +114,19 @@ class GameMaster {
             }
             else if (currentStage instanceof ForceMove) {
                 int forceMove = ((ForceMove) currentStage).getForceStage();
+                if (forceMove == GHOST_FORCE_MOVE) {
+                    forceMove = -(userLoc - ghostLoc) + 1;
+                    System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
+                } else {
+                    System.out.println(forceMove + "칸 강제 이동!");
+                }
                 userMove(forceMove);
-                System.out.println(forceMove + "칸 강제 이동!");
                 
-                System.out.println(ghostForceLoc());
+                
             }
             else if(currentStage instanceof GhostStage) {
-                ghostMove();
-                System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
+                ghostMove(ghostDistance);
+                System.out.println("유령이 이동했습니다.");
                 System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
                 if (ghostLoc == getUserLoc()) {
                     System.out.println("유령에게 잡혔습니다.");
@@ -119,9 +143,7 @@ class GameMaster {
         }
     }
     
-    public int ghostForceLoc() {
-        return getUserLoc() - (getUserLoc() - getGhostLoc()) - 1;
-    }
+    
 
     // 골 도착 확인
     public boolean checkGoal() {
@@ -286,6 +308,29 @@ class GameMaster {
         } else {
             System.out.print("[?]");  // 알 수 없는 칸
         }
+    }
+    
+    public void run() {
+
+    	 Scanner scanner = new Scanner(System.in);
+
+         System.out.println("=== 보드게임 테스트 시작 ===");
+         printBoard();
+
+         while (!checkGoal()) {
+             System.out.println("\n엔터를 누르면 주사위를 굴립니다...");
+             scanner.nextLine();
+
+             int dice = diceRoll();
+             
+             System.out.println("주사위: " + dice);
+
+             userMove(dice);
+             printBoard();
+         }
+
+         System.out.println("\n=== 게임 클리어! ===");
+         scanner.close();
     }
 
     // getter/setter 메서드들

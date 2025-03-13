@@ -10,7 +10,7 @@ class EventStage implements Stage{
 	// 도착하면 그 칸의 정보가 출력
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
+		
 		System.out.println("현재 칸 : [E]-이벤트");
 	}
 	
@@ -38,7 +38,7 @@ class ForceMove implements Stage {
 	// 도착하면 그 칸의 정보가 출력
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
+		
 		System.out.println("현재 칸 : [F]-강제이동");
 	}
 }
@@ -53,6 +53,7 @@ class BuffStage implements Stage{
 	public BuffStage() {
 		
 	}
+	
 
 	// getter 이동거리 변화 효과
 	public String getBuff() {
@@ -61,7 +62,7 @@ class BuffStage implements Stage{
 	
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
+		
 		System.out.println("현재 칸 : [B]-아이템");
 	}
 }
@@ -71,7 +72,7 @@ class GhostStage implements Stage {
 
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
+	
 		System.out.println("현재 칸 : [G]-유령");
 	}
 }
@@ -81,7 +82,7 @@ class NormalStage implements Stage {
 
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
+		
 		System.out.println("현재 칸 : [N]-일반");
 	}
 }
