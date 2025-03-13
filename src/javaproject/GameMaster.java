@@ -3,90 +3,39 @@ package javaproject;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
-//하하하하
+
 class GameMaster {
     private ArrayList<Stage> board;  // 보드 맵
     private int userLoc;            // 유저 현재위치
     private String buff;            // 유저 이동거리 변화 효과
-    private final int BOARD_SIZE = 30;  // 보드 크기
+    private static final int BOARD_SIZE = 30;  // 보드 크기
     private Random random;          // 주사위 용 랜덤 객체
     private int ghostLoc;           // 유령 위치
     private int ghostDistance;     // 유령 이동 거리
-    final int GHOST_FORCE_MOVE = -9999; // 유령 강제 이동
-   
+    private String currentMapStyle; // 현재 맵 스타일
+    private MapManager mapManager;  // 맵 관리자
 
     public GameMaster() {
-        this.board = new ArrayList<>();
         this.userLoc = 0;  // 시작 위치
         this.ghostLoc = 0; // 유령 시작 위치
         this.ghostDistance = 3; // 유령 기본 이동 거리
         this.buff = "normal";  // 기본 이동 효과
         this.random = new Random();
-        initializeBoard();
-    }
-    
-
-    // 보드 칸 목록
-    // NormalStage: 일반 칸
-    // EventStage: 이벤트 칸
-    // ItemStage: 아이템 칸
-    // GhostStage: 유령 칸
-    // ForceMove: 강제 이동 칸
-    // BuffStage: 버프 효과 칸
- 
-    // 보드 초기화 - 이미지 기반으로 맵 구성
-    private void initializeBoard() {
-        // 1-7번 칸
-        board.add(new NormalStage());      // 1: 시작
-        board.add(new NormalStage());      // 2: 일반칸
-        board.add(new EventStage());      // 3: 이벤트
-        board.add(new GhostStage());      // 4: 유령
-        board.add(new EventStage());      // 5: 이벤트
-        board.add(new BuffStage("double"));  // 6: 아이템 !이동거리 2배
-        board.add(new EventStage());      // 7: 이벤트
-
-        // 8-14번 칸
-        board.add(new NormalStage());      // 8: 일반칸
-        board.add(new ForceMove(-1));     // 9: 강제이동
-        board.add(new GhostStage());      // 10: 유령
-        board.add(new EventStage());      // 11: 이벤트
-        board.add(new BuffStage("half")); // 12: 아이템 !이동거리 반감
-        board.add(new ForceMove(2));      // 13: 강제이동
-        board.add(new EventStage());      // 14: 이벤트
-
-        // 15-21번 칸
-        board.add(new NormalStage());      // 15: 일반칸
-        board.add(new EventStage());      // 16: 이벤트
-        board.add(new GhostStage());      // 17: 유령
-        board.add(new EventStage());      // 18: 이벤트
-        board.add(new GhostStage());      // 19: 유령
-        board.add(new ForceMove(-1));     // 20: 강제이동
-        board.add(new EventStage());      // 21: 이벤트
-
-        // 22-30번 칸
-        board.add(new NormalStage());      // 22: 일반칸
-        board.add(new NormalStage());      // 23: 일반칸
-        board.add(new ForceMove(GHOST_FORCE_MOVE));      // 24: 강제이동 !유령 앞으로 이동
-        board.add(new EventStage());      // 25: 이벤트
-        board.add(new GhostStage());      // 26: 유령
-        board.add(new BuffStage("gDouble"));       // 27: 아이템 !유령 이동칸 2배
-        board.add(new GhostStage());      // 28: 유령
-        board.add(new EventStage());      // 29: 이벤트
-        board.add(new NormalStage());      // 30: 골
+        this.mapManager = new MapManager();
+        this.board = mapManager.selectAndLoadMap();
+        this.currentMapStyle = mapManager.getCurrentMapStyle();
     }
 
     // 주사위 던지는 메서드
-    public int diceRoll() {
-    	buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
-        return random.nextInt(6) + 1;
-    }
-    
-    // 디버깅용 주사위 스캐너로 원하는 값 입력
 //    public int diceRoll() {
-//    	Scanner scanner = new Scanner(System.in);
-//    	int dice = scanner.nextInt();
-//    	return dice;
+//        return random.nextInt(6) + 1;
 //    }
+    // 디버깅용 주사위 스캐너로 원하는 값 입력
+    public int diceRoll() {
+        Scanner scanner = new Scanner(System.in);
+        int dice = scanner.nextInt();
+        return dice;
+    }
 
     // 유저 움직이는 메서드
     public int userMove(int distance) {
@@ -110,12 +59,11 @@ class GameMaster {
 
         return userLoc;
     }
+
     // 유령 이동 메서드
-    public int ghostMove(int ghostDistance) {
-    	int actualGhostDistance = applyGhostBuff(ghostDistance);
-    	
-    	ghostLoc = ghostLoc + actualGhostDistance;
-    	return actualGhostDistance;	    	
+    public int ghostMove() {
+        ghostLoc = ghostLoc + ghostDistance;
+        return ghostLoc;           
     }
 
     // 버프 효과를 적용하는 private 메서드
@@ -133,15 +81,6 @@ class GameMaster {
                 return distance;
         }
     }
-    
-	private int applyGhostBuff(int ghostDistance) {
-		switch (buff.toLowerCase()) {
-		case "gDouble":
-			return ghostDistance * 2;		
-		default:
-			return ghostDistance;
-		}
-	}
 
     // 현재 위치의 칸 정보 확인
     public void nowLocation() {
@@ -152,61 +91,37 @@ class GameMaster {
             // 각 스테이지 타입별 특수 효과 처리
             if (currentStage instanceof BuffStage) {
                 buff = ((BuffStage) currentStage).getBuff();
-                switch(buff) {
-				case "double":
-					System.out.println("이동거리 2배 효과를 획득했습니다.");
-					break;
-				case "half":
-					System.out.println("이동거리 반감 효과를 획득했습니다.");
-					break;
-				case "plus1":
-					System.out.println("이동거리 +1 효과를 획득했습니다.");
-					break;
-				case "minus1":
-					System.out.println("이동거리 -1 효과를 획득했습니다.");
-					break;
-				case "gDouble":
-					System.out.println("유령 이동거리 2배 효과를 획득했습니다.");
-					break;
-                }
+                System.out.println("버프 효과 획득: " + buff);
             }
-            // 강제 이동 파트
             else if (currentStage instanceof ForceMove) {
                 int forceMove = ((ForceMove) currentStage).getForceStage();
-             // 유령 위치 앞으로 이동하는 케이스 파트
-                if (forceMove == GHOST_FORCE_MOVE) {
-                    forceMove = -(userLoc - ghostLoc) + 1;
-                    System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
-                } else {
-                    System.out.println(forceMove + "칸 강제 이동!");
-                }
-                
                 userMove(forceMove);
-
-
-            	  
+                System.out.println(forceMove + "칸 강제 이동!");
+                
+                System.out.println(ghostForceLoc());
             }
             else if(currentStage instanceof GhostStage) {
-            	ghostMove(ghostDistance);            	
-            	System.out.println("유령이 이동했습니다.");
-            	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-				if (ghostLoc == userLoc) {
-					System.out.println("유령에게 잡혔습니다.");
-					System.out.println("게임이 종료되었습니다.");
-					System.exit(0);
-				}
+                ghostMove();
+                System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
+                System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
+                if (ghostLoc == getUserLoc()) {
+                    System.out.println("유령에게 잡혔습니다.");
+                    System.out.println("게임이 종료되었습니다.");
+                    System.exit(0);
+                }
             }
             else if(currentStage instanceof EventStage) {
-            	
+                
             }
             else if(currentStage instanceof NormalStage) {
-            	System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
+                System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
             }
-            
         }
     }
     
-    
+    public int ghostForceLoc() {
+        return getUserLoc() - (getUserLoc() - getGhostLoc()) - 1;
+    }
 
     // 골 도착 확인
     public boolean checkGoal() {
@@ -215,113 +130,182 @@ class GameMaster {
 
     // 보드 상태 출력
     public void printBoard() {
+        String RESET = "\u001B[0m";
+        String RED = "\u001B[31m";
+        String GREEN = "\u001B[32m";
+        String YELLOW = "\u001B[33m";
+        String BLUE = "\u001B[34m";
+        String PURPLE = "\u001B[35m";
+        String CYAN = "\u001B[36m";
+        String BOLD = "\u001B[1m";
+
+        // 상단 정보 출력
+        System.out.println("\n" + BOLD + "=== 유령 피하기 게임 ===" + RESET);
+        System.out.println("현재 맵: " + GREEN + mapManager.getCurrentMapStyle() + RESET);
+        System.out.println("현재 위치: " + YELLOW + (userLoc + 1) + "번 칸" + RESET);
+        System.out.println("현재 버프: " + CYAN + buff + RESET + "\n");
+
+        // 맵 스타일에 따라 다른 출력 방식 사용
+        switch(mapManager.getBoardVisualStyle()) {
+            case "BLOCK_PUZZLE":
+                System.out.println(mapManager.getBlockPuzzleBoard());
+                break;
+            default:
+                // RPG 스타일 보드 출력
+                printRPGStyle();
+        }
+
+        // 범례 출력
+        System.out.println("\n" + BOLD + "[범례]" + RESET);
+        System.out.println(YELLOW + "[P]" + RESET + " : 플레이어   " +
+                         RED + "[G]" + RESET + " : 유령/유령칸   " +
+                         BLUE + "[E]" + RESET + " : 이벤트칸");
+        System.out.println(CYAN + "[I]" + RESET + " : 아이템칸    " +
+                         PURPLE + "[F]" + RESET + " : 강제이동칸  " +
+                         "[ ]" + " : 일반칸");
+
+        // 진행 상태바 출력
+        int progress = (userLoc * 100) / (BOARD_SIZE - 1);
+        System.out.println("\n진행률: " + progress + "%");
+        System.out.print("[");
+        for (int i = 0; i < 50; i++) {
+            if (i < (progress/2)) {
+                System.out.print("█");
+            } else {
+                System.out.print("░");
+            }
+        }
+        System.out.println("]");
+    }
+
+    // RPG 스타일 출력을 위한 private 메서드
+    private void printRPGStyle() {
         // 첫 번째 줄 (1-7)
-        System.out.print("   ");
-        for (int i = 1; i <= 7; i++) {
-            System.out.printf("%-6d", i);  // 4칸으로 통일
-        }
-        System.out.println();
-        System.out.print("   ");
-        for (int i = 0; i < 7; i++) {
-            printSquare(i);
-            if (i < 6) System.out.print(" - ");
-        }
-        System.out.println();
+        printRPGTopBorder(0, 7);
+        printRPGNumberRow(1, 7);
+        printRPGSquareRow(0, 7);
+        printRPGBottomBorder(0, 7, false);
 
         // 두 번째 줄 (8-14)
-        System.out.print("   ");
-        for (int i = 8; i <= 14; i++) {
-            System.out.printf("%-6d", i);  // 4칸으로 통일
-        }
-        System.out.println();
-        System.out.print("   ");
-        for (int i = 7; i < 14; i++) {
-            printSquare(i);
-            if (i < 13) System.out.print(" - ");
-        }
-        System.out.println();
+        printRPGTopBorder(7, 14);
+        printRPGNumberRow(8, 14);
+        printRPGSquareRow(7, 14);
+        printRPGBottomBorder(7, 14, false);
 
         // 세 번째 줄 (15-21)
-        System.out.print("   ");
-        for (int i = 15; i <= 21; i++) {
-            System.out.printf("%-6d", i);  // 4칸으로 통일
-        }
-        System.out.println();
-        System.out.print("   ");
-        for (int i = 14; i < 21; i++) {
-            printSquare(i);
-            if (i < 20) System.out.print(" - ");
-        }
-        System.out.println();
+        printRPGTopBorder(14, 21);
+        printRPGNumberRow(15, 21);
+        printRPGSquareRow(14, 21);
+        printRPGBottomBorder(14, 21, false);
 
         // 네 번째 줄 (22-30)
-        System.out.print("   ");
-        for (int i = 22; i <= 30; i++) {
-            System.out.printf("%-6d", i);  // 4칸으로 통일
-        }
-        System.out.println();
-        System.out.print("   ");
-        for (int i = 21; i < 30; i++) {
-            printSquare(i);
-            if (i < 29) System.out.print(" - ");
-        }
-        System.out.println();
-
-        System.out.println("\n현재 위치: " + (userLoc + 1) + "번 칸");
-        System.out.println("현재 버프: " + buff);
+        printRPGTopBorder(21, 30);
+        printRPGNumberRow(22, 30);
+        printRPGSquareRow(21, 30);
+        printRPGBottomBorder(21, 30, true);
     }
 
+    // RPG 스타일 상단 테두리 출력
+    private void printRPGTopBorder(int start, int end) {
+        System.out.print("╔");
+        for (int i = start; i < end; i++) {
+            System.out.print("═══════");
+            if (i < end - 1) System.out.print("╦");
+        }
+        System.out.println("╗");
+    }
 
+    // RPG 스타일 숫자 줄 출력
+    private void printRPGNumberRow(int start, int end) {
+        System.out.print("║");
+        for (int i = start; i <= end; i++) {
+            if (i < 10) {
+                System.out.printf("   %d   ", i);
+            } else {
+                System.out.printf("  %d   ", i);
+            }
+            if (i < end) System.out.print("║");
+        }
+        System.out.println("║");
+    }
 
-    private void printSquare(int index) {
-        String symbol;
+    // RPG 스타일 칸 줄 출력
+    private void printRPGSquareRow(int start, int end) {
+        System.out.print("║");
+        for (int i = start; i < end; i++) {
+            System.out.print("  ");
+            printColorSquare(i);
+            System.out.print("  ");
+            if (i < end - 1) System.out.print("║");
+        }
+        System.out.println("║");
+    }
+
+    // RPG 스타일 하단 테두리 출력
+    private void printRPGBottomBorder(int start, int end, boolean isLast) {
+        System.out.print(isLast ? "╚" : "╠");
+        for (int i = start; i < end; i++) {
+            System.out.print("═══════");
+            if (i < end - 1) System.out.print(isLast ? "╩" : "╬");
+        }
+        System.out.println(isLast ? "╝" : "╣");
+    }
+
+    private void printColorSquare(int index) {
+        String RESET = "\u001B[0m";
+        String RED = "\u001B[31m";
+        String GREEN = "\u001B[32m";
+        String YELLOW = "\u001B[33m";
+        String BLUE = "\u001B[34m";
+        String PURPLE = "\u001B[35m";
+        String CYAN = "\u001B[36m";
+        String BOLD = "\u001B[1m";
+
         Stage currentStage = board.get(index);
 
-        if (index == userLoc) {
-            symbol = "[P]";  // 플레이어 위치
+        if (index == userLoc && index == ghostLoc) {
+            System.out.print(BOLD + RED + "[X]" + RESET);  // 유저와 유령이 같은 위치
+        } else if (index == userLoc) {
+            System.out.print(BOLD + YELLOW + "[P]" + RESET);  // 플레이어 위치
+        } else if (index == ghostLoc) {
+            System.out.print(BOLD + RED + "[G]" + RESET);  // 유령 위치
         } else if (index == 0) {
-            symbol = "[S]";  // 시작 지점
+            System.out.print(BOLD + GREEN + "[S]" + RESET);  // 시작 지점
         } else if (index == BOARD_SIZE - 1) {
-            symbol = "[G]";  // 골 지점
+            System.out.print(BOLD + PURPLE + "[F]" + RESET);  // 골 지점
         } else if (currentStage instanceof NormalStage) {
-            symbol = "[ ]";  // 일반 칸
+            System.out.print("[ ]");  // 일반 칸
         } else if (currentStage instanceof GhostStage) {
-            symbol = "[G]";  // 유령 칸
+            System.out.print(BOLD + RED + "[G]" + RESET);  // 유령 칸
         } else if (currentStage instanceof EventStage) {
-            symbol = "[E]";  // 이벤트 칸
+            System.out.print(BOLD + BLUE + "[E]" + RESET);  // 이벤트 칸
         } else if (currentStage instanceof BuffStage) {
-            symbol = "[I]";  // 아이템 칸
+            System.out.print(BOLD + CYAN + "[I]" + RESET);  // 아이템 칸
         } else if (currentStage instanceof ForceMove) {
-            symbol = "[F]";  // 강제이동 칸
+            System.out.print(BOLD + PURPLE + "[F]" + RESET);  // 강제이동 칸
         } else {
-            symbol = "[?]";  // 알 수 없는 칸
+            System.out.print("[?]");  // 알 수 없는 칸
         }
+    }
 
-        System.out.print(symbol);
+    // getter/setter 메서드들
+    public int getUserLoc() {
+        return userLoc;
+    }
+
+    public void setUserLoc(int userLoc) {
+        this.userLoc = userLoc;
+    }
+
+    public String getBuff() {
+        return buff;
+    }
+
+    public void setBuff(String buff) {
+        this.buff = buff;
     }
     
-    public void run() {
-		Scanner scanner = new Scanner(System.in);
-
-		System.out.println("=== 보드게임 테스트 시작 ===");
-		printBoard();
-
-		while (!checkGoal()) {
-			System.out.println("\n엔터를 누르면 주사위를 굴립니다...");
-			scanner.nextLine();
-
-			int dice = diceRoll();
-			System.out.println("주사위: " + dice);
-
-			userMove(dice);
-			printBoard();
-		}
-
-		System.out.println("\n=== 게임 클리어! ===");
-		scanner.close();
+    public int getGhostLoc() {
+        return ghostLoc;
     }
-
-
-
-	
 }
