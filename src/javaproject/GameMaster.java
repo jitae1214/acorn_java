@@ -1,5 +1,6 @@
 package javaproject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -13,13 +14,16 @@ class GameMaster {
     private int ghostLoc;           // 유령 위치
     private int ghostDistance;     // 유령 이동 거리
 
-    public GameMaster() {
+    public GameMaster() throws IOException {
         this.board = new ArrayList<>();
         this.userLoc = 0;  // 시작 위치
         this.ghostLoc = 0; // 유령 시작 위치
         this.ghostDistance = 3; // 유령 기본 이동 거리
         this.buff = "normal";  // 기본 이동 효과
         this.random = new Random();
+        
+        QuizManager.quizSetting(); //리스트에 저장된 문제 불러오기
+        
         initializeBoard();
     }
     
@@ -166,9 +170,9 @@ class GameMaster {
             	boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
             	
             	if(eventQuiz) {
-            		System.out.println("성공");
+            		System.out.println("정답입니다!!!");
             	}else {
-            		System.out.println("실패");
+            		System.out.println("오답입니다...");
             		ghostMove();
                 	System.out.println("유령이 " + ghostDistance + "칸 이동했습니다.");
                 	System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");

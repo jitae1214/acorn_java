@@ -27,10 +27,7 @@ public class Quiz {
 	}
 	
 	// 답확인하는 메서드 
-//	boolean isCorrect(String answer) {
-//		return false;
-//	}
 	boolean isCorrect(String userAnswer) {
-	    return this.answer.equalsIgnoreCase(userAnswer.trim());
+	    return this.answer.equalsIgnoreCase(userAnswer.trim()); //대소문자, 앞뒤 공백 처리
 	}
 }

@@ -7,40 +7,41 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class QuizManager {
-    static ArrayList<Quiz> easy = new ArrayList<>();
-    static ArrayList<Quiz> normal = new ArrayList<>();
-    static ArrayList<Quiz> hard = new ArrayList<>();
+    static ArrayList<Quiz> easy = new ArrayList<>(); //easy 문제 리스트
+    static ArrayList<Quiz> normal = new ArrayList<>(); //normal 문제 리스트
+    static ArrayList<Quiz> hard = new ArrayList<>(); //hard 문제 리스트
 
     // 문제들 불러오기
     static void quizSetting() throws IOException {
-    	loadQuizFile("res/EASY.txt", "EASY");
-        loadQuizFile("res/NORMAL.txt", "NORMAL");
-        loadQuizFile("res/HARD.txt", "HARD");
+    	loadQuizFile("res/EASY.txt", "EASY"); //easy 문제 불러오기
+        loadQuizFile("res/NORMAL.txt", "NORMAL"); //normal 문제 불러오기
+        loadQuizFile("res/HARD.txt", "HARD"); //hard 문제 불러오기
     }
 
     // 문제 파일 읽기
     static void loadQuizFile(String fileName, String difficulty) throws IOException {
-		BufferedReader br = new BufferedReader(new FileReader(fileName));
-		String line;
+		BufferedReader br = new BufferedReader(new FileReader(fileName)); //버퍼 리더
+		String line; //텍스트 파일에 문제 라인 저장 변수
 		
+		//각 문제를 배열에 저장
 		while((line = br.readLine()) != null) {
-			String[] parts = line.split("&&");
+			String[] parts = line.split("&&"); //&&에 따라 분류
 			
 			// 데이터 형식이 올바른지 확인
 			if (parts.length < 3) {
 				continue; // 건너뛰기
 			}
 			
-			String content = parts[0].trim();
-			String example = parts[1].trim();
-			String answer = parts[2].trim();
+			String content = parts[0].trim(); //문제
+			String example = parts[1].trim(); //보기
+			String answer = parts[2].trim(); //답
 			
-			Quiz quiz = new Quiz(content, example, answer);
+			Quiz quiz = new Quiz(content, example, answer); 
 			addToListDifficulty(difficulty, quiz);
 		}
 	}
 
-    // 난이도별 리스트에 문제 추가
+    //난이도별 리스트에 문제 추가
     static void addToListDifficulty(String difficulty, Quiz quiz) {
         switch (difficulty) {
             case "EASY":
@@ -57,27 +58,20 @@ public class QuizManager {
         }
     }
     
-    static {
-        try {
-            quizSetting();
-        } catch (IOException e) {
-            System.out.println("문제를 불러오는 중 오류 발생: " + e.getMessage());
-        }
-    }
-
     // 문제 출력 메서드
-    void printQuiz(ArrayList<Quiz> level, int index) {
-        Quiz quiz = level.get(index);
-
-        System.out.println(quiz.content);
-        System.out.println(quiz.example);
-        System.out.println(quiz.answer);
-    }
+//    void printQuiz(ArrayList<Quiz> level, int index) {
+//        Quiz quiz = level.get(index);
+//
+//        System.out.println(quiz.content);
+//        System.out.println(quiz.example);
+//        System.out.println(quiz.answer);
+//    }
     
     // 문제풀이 실패하면 false 성공하면 true
 	static boolean answerCheck(int location) {
-		Scanner scanner = new Scanner(System.in);
+		Scanner sc = new Scanner(System.in);
 		
+		//도착한 이벤트 칸의 난이도 판별
 		String difficulty;
 	    if (location > 0 && location < 10) {
 	        difficulty = "EASY";
@@ -87,15 +81,15 @@ public class QuizManager {
 	        difficulty = "HARD";
 	    }
 	    
-	 // 난이도에 맞는 문제 리스트 선택
+	    //난이도에 맞는 문제 리스트 선택
 	    ArrayList<Quiz> selectedList = getQuizListDifficulty(difficulty);
 	    
+	    //배열에 문제가 없을 경우
 	    if (selectedList.isEmpty()) {
 	        System.out.println("출제할 문제가 없습니다!");
 	        return false;
 	    }
-	    
-	    // 랜덤 문제 선택
+
 	    // 랜덤 문제 선택 (리스트 크기 내에서 인덱스 선택)
 	    int randomIndex = (int) (Math.random() * selectedList.size());
 	    Quiz quiz = selectedList.get(randomIndex);
@@ -103,22 +97,22 @@ public class QuizManager {
 	    // 문제 출력
 	    System.out.println("문제: " + quiz.getContent());
 	    System.out.println("보기: " + quiz.getExample());
-	    System.out.print("정답을 입력하세요: ");
 	    
-	    String userAnswer = scanner.nextLine();
+	    //정답 입력
+	    System.out.print("정답을 입력하세요: ");
+	    String userAnswer = sc.nextLine();
 
 	    // 정답 체크
 	    if (quiz.isCorrect(userAnswer)) {
-	        System.out.println("정답입니다!");
-	        quizRemove(quiz, difficulty);  // 문제 제거
+	        quizRemove(quiz, difficulty);  //리스트에서 문제 제거
 	        return true;
 	    } else {
-	        System.out.println("틀렸습니다!");
-	        quizRemove(quiz, difficulty);  // 문제 제거
+	        quizRemove(quiz, difficulty);  //리스트에서 문제 제거
 	        return false;
 	    }
 	}
 	
+	//리스트의 난이도 판별
 	private static ArrayList<Quiz> getQuizListDifficulty(String difficulty) {
 	    switch (difficulty) {
 	        case "EASY":
@@ -132,7 +126,7 @@ public class QuizManager {
 	    }
 	}
 
-	// 풀었던 문제 없애는 메서드
+	//풀었던 문제 없애는 메서드
 	static void quizRemove(Quiz quiz, String difficulty) {
 		switch (difficulty) {
         case "EASY":
