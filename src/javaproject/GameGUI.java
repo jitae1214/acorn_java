@@ -19,7 +19,7 @@ public class GameGUI extends JFrame {
     private JLabel statusLabel;
     private JLabel buffLabel;
     private JLabel locationLabel;
-    private static final int SQUARE_SIZE = 60;
+    private static int SQUARE_SIZE = 60;
     private static final int BOARD_SIZE = 30;
     private Random random = new Random();
 
@@ -28,8 +28,12 @@ public class GameGUI extends JFrame {
      * 콘솔 버전의 main 메소드를 대체
      */
     public GameGUI() {
-        game = new GameMaster();
-        initializeUI();
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    public void setGameMaster(GameMaster gameMaster) {
+        this.game = gameMaster;
+        initializeUI();  // UI 초기화는 GameMaster가 설정된 후에 실행
     }
 
     /*
@@ -39,21 +43,44 @@ public class GameGUI extends JFrame {
      * - 하단: 주사위 버튼
      */
     private void initializeUI() {
-        setTitle("유령 피하기 보드게임"); // 창 제목 설정
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 창이 닫힐 때의 동작 설정
-        setLayout(new BorderLayout());// 레이아웃 설정
+        setTitle("유령 피하기 보드게임");
+        setLayout(new BorderLayout());
 
-        // 상태 패널 (상단)
+        // 전체 화면 설정
+        setExtendedState(JFrame.MAXIMIZED_BOTH); //창 전체 화면
+        setUndecorated(true); // 창 테두리 제거
+
+        // ESC 키로 전체 화면 종료 가능하게 설정
+        KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
+        Action escapeAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+                System.exit(0);
+            }
+        };
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
+        getRootPane().getActionMap().put("ESCAPE", escapeAction);
+
+        // 상태 패널 (상단) - 폰트 크기 증가
         JPanel statusPanel = new JPanel(new GridLayout(3, 1));
+        statusPanel.setBackground(new Color(240, 240, 240));
+        statusPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        Font largeFont = new Font("맑은 고딕", Font.BOLD, 24);
         statusLabel = new JLabel("게임 시작!", SwingConstants.CENTER);
         buffLabel = new JLabel("현재 버프: normal", SwingConstants.CENTER);
         locationLabel = new JLabel("현재 위치: 1번 칸", SwingConstants.CENTER);
+        
+        statusLabel.setFont(largeFont);
+        buffLabel.setFont(largeFont);
+        locationLabel.setFont(largeFont);
+
         statusPanel.add(statusLabel);
         statusPanel.add(buffLabel);
         statusPanel.add(locationLabel);
         add(statusPanel, BorderLayout.NORTH);
 
-        // 보드 패널 (중앙)
+        // 보드 패널 (중앙) - 크기 조정
         boardPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -61,18 +88,29 @@ public class GameGUI extends JFrame {
                 drawBoard(g);
             }
         };
-        boardPanel.setPreferredSize(new Dimension(SQUARE_SIZE * 10, SQUARE_SIZE * 4));
+        boardPanel.setBackground(Color.WHITE);
+        // 화면 크기에 맞게 보드 크기 조정
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int boardWidth = (int)(screenSize.width * 0.8);
+        int boardHeight = (int)(screenSize.height * 0.6);
+        boardPanel.setPreferredSize(new Dimension(boardWidth, boardHeight));
         add(new JScrollPane(boardPanel), BorderLayout.CENTER);
 
         // 주사위 버튼 패널 (하단)
         JPanel controlPanel = new JPanel();
+        controlPanel.setBackground(new Color(240, 240, 240));
+        controlPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
         diceButton = new JButton("주사위 굴리기");
+        diceButton.setFont(largeFont);
+        diceButton.setPreferredSize(new Dimension(200, 60));
         diceButton.addActionListener(e -> rollDice());
+        
         controlPanel.add(diceButton);
         add(controlPanel, BorderLayout.SOUTH);
 
-        pack();
-        setLocationRelativeTo(null);
+        // 전체 화면 크기에 맞게 SQUARE_SIZE 조정
+        SQUARE_SIZE = Math.min(boardWidth / 11, boardHeight / 5);
     }
 
     /*
@@ -83,41 +121,66 @@ public class GameGUI extends JFrame {
      * - 칸 번호 표시
      */
     private void drawBoard(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
         ArrayList<Stage> board = game.getBoard();
-        int x = 10;
-        int y = 10;
+        int margin = SQUARE_SIZE / 2;
+        int x = margin;
+        int y = margin;
         int row = 0;
+
+        Font boardFont = new Font("맑은 고딕", Font.BOLD, SQUARE_SIZE / 4);
+        g2d.setFont(boardFont);
 
         for (int i = 0; i < BOARD_SIZE; i++) {
             // 새로운 줄 시작
             if (i > 0 && i % 10 == 0) {
                 row++;
-                x = 10;
-                y = 10 + (row * (SQUARE_SIZE + 10));
+                x = margin;
+                y = margin + (row * (SQUARE_SIZE + margin));
             }
 
-            // 칸 그리기
-            g.setColor(getSquareColor(board.get(i)));
-            g.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
-            g.setColor(Color.BLACK);
-            g.drawRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
+            // 칸 그리기 (그림자 효과 추가)
+            g2d.setColor(new Color(180, 180, 180));
+            g2d.fillRect(x + 3, y + 3, SQUARE_SIZE, SQUARE_SIZE);
+            g2d.setColor(getSquareColor(board.get(i)));
+            g2d.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
+            g2d.setColor(Color.BLACK);
+            g2d.drawRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
 
             // 칸 번호 표시
-            g.drawString(String.valueOf(i + 1), x + 5, y + 20);
+            String number = String.valueOf(i + 1);
+            FontMetrics metrics = g2d.getFontMetrics();
+            int numberX = x + (SQUARE_SIZE - metrics.stringWidth(number)) / 2;
+            int numberY = y + metrics.getHeight();
+            g2d.drawString(number, numberX, numberY);
 
-            // 플레이어 위치 표시
+            // 플레이어 위치 표시 (그라데이션 효과 추가)
             if (i == game.getUserLoc()) {
-                g.setColor(Color.YELLOW);
-                g.fillOval(x + 10, y + 25, 20, 20);
+                GradientPaint gradient = new GradientPaint(
+                    x + SQUARE_SIZE/4, y + SQUARE_SIZE/2,
+                    Color.YELLOW,
+                    x + SQUARE_SIZE*3/4, y + SQUARE_SIZE*3/4,
+                    new Color(255, 200, 0)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillOval(x + SQUARE_SIZE/4, y + SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
             }
 
-            // 유령 위치 표시
+            // 유령 위치 표시 (그라데이션 효과 추가)
             if (i == game.getGhostLoc()) {
-                g.setColor(Color.RED);
-                g.fillOval(x + 30, y + 25, 20, 20);
+                GradientPaint gradient = new GradientPaint(
+                    x + SQUARE_SIZE/4, y + SQUARE_SIZE/2,
+                    Color.RED,
+                    x + SQUARE_SIZE*3/4, y + SQUARE_SIZE*3/4,
+                    new Color(180, 0, 0)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillOval(x + SQUARE_SIZE/4, y + SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
             }
 
-            x += SQUARE_SIZE + 10;
+            x += SQUARE_SIZE + margin;
         }
     }
 
@@ -145,7 +208,7 @@ public class GameGUI extends JFrame {
         diceButton.setEnabled(false);
         
         // 주사위 굴리기 효과를 위한 타이머
-        Timer timer = new Timer(100, new ActionListener() {
+        Timer timer = new Timer(50, new ActionListener() {
             int count = 0;
             int finalResult = game.diceRoll();
             

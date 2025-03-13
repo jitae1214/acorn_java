@@ -59,8 +59,7 @@ public class MapManager {
         }
         return board;
     }
-
-    private void loadMapFromFile(String filename) {
+    public void loadMapFromFile(String filename) {
         board.clear();
         try {
             // maps 폴더의 실제 경로 사용
@@ -134,7 +133,7 @@ public class MapManager {
         }
     }
 
-    private void initializeDefaultBoard() {
+    public void initializeDefaultBoard() {
         board.clear();
         // 1-7번 칸
         board.add(new NormalStage());     // 1: 시작
@@ -160,13 +159,13 @@ public class MapManager {
         board.add(new GhostStage());      // 17: 유령
         board.add(new EventStage());      // 18: 이벤트
         board.add(new GhostStage());      // 19: 유령
-        board.add(new ForceMove(-1));   // 20: 강제이동
+        board.add(new ForceMove(-1));     // 20: 강제이동
         board.add(new EventStage());      // 21: 이벤트
 
         // 22-30번 칸
         board.add(new NormalStage());      // 22: 일반칸
         board.add(new NormalStage());      // 23: 일반칸
-        board.add(new ForceMove(-1));   // 24: 강제이동
+        board.add(new ForceMove(-1));     // 24: 강제이동
         board.add(new EventStage());      // 25: 이벤트
         board.add(new GhostStage());      // 26: 유령
         board.add(new BuffStage());       // 27: 아이템

@@ -22,8 +22,8 @@ class GameMaster {
         this.buff = "normal";  // 버프 초기값 설정
         this.random = new Random();
         this.mapManager = new MapManager();
-        this.board = mapManager.selectAndLoadMap();
-        this.currentMapStyle = mapManager.getCurrentMapStyle();
+        this.board = new ArrayList<>(); // 빈 보드로 초기화
+        this.currentMapStyle = "기본";
     }
 
     // 주사위 던지는 메서드
@@ -312,5 +312,20 @@ class GameMaster {
     // 보드 getter 메서드 추가
     public ArrayList<Stage> getBoard() {
         return board;
+    }
+
+    // MapManager getter 메서드 추가
+    public MapManager getMapManager() {
+        return mapManager;
+    }
+
+    // 보드 설정 메서드 추가
+    public void setBoard(ArrayList<Stage> board) {
+        this.board = board;
+    }
+
+    // 맵 스타일 설정 메서드 추가
+    public void setCurrentMapStyle(String style) {
+        this.currentMapStyle = style;
     }
 }
