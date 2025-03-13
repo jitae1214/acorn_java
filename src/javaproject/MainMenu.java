@@ -12,7 +12,7 @@ import java.io.File;
 - 맵 선택, 설정, 제작자 정보 표시
 - 유령 애니메이션 효과
 - UI/UX 디자인
-*/
+
 public class MainMenu extends JFrame {
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 60;
@@ -616,3 +616,4 @@ public class MainMenu extends JFrame {
         });
     }
 }
+*/

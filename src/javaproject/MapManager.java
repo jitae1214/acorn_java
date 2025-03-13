@@ -27,6 +27,8 @@ public class MapManager {
     private ArrayList<Stage> board;
     private String currentMapStyle;
     private static final int BOARD_SIZE = 30;
+    private static final int GHOST_FORCE_MOVE = -9999; // 유령 방향 이동을 위한 기본 값
+
 
     public MapManager() {
         this.board = new ArrayList<>();
@@ -139,46 +141,43 @@ public class MapManager {
 
     public void initializeDefaultBoard() {
         board.clear();
-        // 미로 형태의 맵 구현
-        // 1행 (1-6번 칸)
+        // 1-7번 칸
         board.add(new NormalStage());     // 1: 시작
-        board.add(new EventStage());      // 2: 이벤트
-        board.add(new NormalStage());     // 3: 일반칸
+        board.add(new NormalStage());     // 2: 일반칸
+        board.add(new EventStage());      // 3: 이벤트
         board.add(new GhostStage());      // 4: 유령
-        board.add(new NormalStage());     // 5: 일반칸
-        board.add(new BuffStage());       // 6: 아이템
+        board.add(new EventStage());      // 5: 이벤트
+        board.add(new BuffStage("double"));       // 6: 아이템
+        board.add(new EventStage());      // 7: 이벤트
 
-        // 2행 (7-12번 칸)
-        board.add(new NormalStage());     // 7: 일반칸
-        board.add(new ForceMove(-1));     // 8: 강제이동
-        board.add(new NormalStage());     // 9: 일반칸
-        board.add(new EventStage());      // 10: 이벤트
-        board.add(new NormalStage());     // 11: 일반칸
-        board.add(new GhostStage());      // 12: 유령
+        // 8-14번 칸
+        board.add(new NormalStage());      // 8: 일반칸
+        board.add(new ForceMove(-1));      // 9: 강제이동
+        board.add(new GhostStage());      // 10: 유령
+        board.add(new EventStage());      // 11: 이벤트
+        board.add(new BuffStage("half"));       // 12: 아이템
+        board.add(new ForceMove(2));      // 13: 강제이동
+        board.add(new EventStage());      // 14: 이벤트
 
-        // 3행 (13-18번 칸)
-        board.add(new BuffStage());       // 13: 아이템
-        board.add(new NormalStage());     // 14: 일반칸
-        board.add(new GhostStage());      // 15: 유령
-        board.add(new NormalStage());     // 16: 일반칸
-        board.add(new EventStage());      // 17: 이벤트
-        board.add(new NormalStage());     // 18: 일반칸
-
-        // 4행 (19-24번 칸)
+        // 15-21번 칸
+        board.add(new NormalStage());      // 15: 일반칸
+        board.add(new EventStage());      // 16: 이벤트
+        board.add(new GhostStage());      // 17: 유령
+        board.add(new EventStage());      // 18: 이벤트
         board.add(new GhostStage());      // 19: 유령
-        board.add(new NormalStage());     // 20: 일반칸
-        board.add(new ForceMove(2));      // 21: 강제이동
-        board.add(new NormalStage());     // 22: 일반칸
-        board.add(new BuffStage());       // 23: 아이템
-        board.add(new NormalStage());     // 24: 일반칸
+        board.add(new ForceMove(-1));   // 20: 강제이동
+        board.add(new EventStage());      // 21: 이벤트
 
-        // 5행 (25-30번 칸)
+        // 22-30번 칸
+        board.add(new NormalStage());      // 22: 일반칸
+        board.add(new NormalStage());      // 23: 일반칸
+        board.add(new ForceMove(GHOST_FORCE_MOVE));   // 24: 강제이동
         board.add(new EventStage());      // 25: 이벤트
-        board.add(new NormalStage());     // 26: 일반칸
-        board.add(new GhostStage());      // 27: 유령
-        board.add(new BuffStage());       // 28: 아이템
+        board.add(new GhostStage());      // 26: 유령
+        board.add(new BuffStage("gDouble"));       // 27: 아이템
+        board.add(new GhostStage());      // 28: 유령
         board.add(new EventStage());      // 29: 이벤트
-        board.add(new NormalStage());     // 30: 골인
+        board.add(new NormalStage());      // 30: 골
     }
 
     public String getCurrentMapStyle() {
