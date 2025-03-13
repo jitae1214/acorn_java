@@ -4,7 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
-
+import javax.sound.sampled.*;
+import java.io.File;
+/*
+주요 기능:
+- 게임의 시작 화면 구현
+- 맵 선택, 설정, 제작자 정보 표시
+- 유령 애니메이션 효과
+- UI/UX 디자인
+*/
 public class MainMenu extends JFrame {
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 60;
@@ -13,15 +21,22 @@ public class MainMenu extends JFrame {
     private boolean fadeIn = true;
     
     // 유령 애니메이션을 위한 필드들
-    private Point ghostPosition;
+    private Point ghostPosition; //유령 위치
     private double ghostAngle = 0;
     private static final int ANIMATION_RADIUS = 200;
-    private static final int GHOST_SPEED = 3;
+    private static final int GHOST_SPEED = 1;
+
+    // 사운드 관련 필드 추가
+    private Clip backgroundSound;
+    private FloatControl volumeControl;
+    private boolean isSoundPlaying = false;
+
 
     public MainMenu() {
         initializeUI();
         initializeAnimationPositions();
         startGhostAnimation();
+        initializeSound();  // 사운드 초기화 추가
     }
 
     private void initializeUI() {
@@ -31,6 +46,8 @@ public class MainMenu extends JFrame {
         setUndecorated(true);
 
         // ESC 키로 종료
+        // -- KeyEvent.VK_ESCAPE: ESC 키를 나타내는 가상 키 코드
+        // -- 모디파이 키가 없음을 의미 (예: Ctrl, Alt, Shift 등을 누르지 않음)
         KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Action escapeAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -38,8 +55,13 @@ public class MainMenu extends JFrame {
                 System.exit(0);
             }
         };
+        // WHEN_IN_FOCUSED_WINDOW: 창이 활성화되어 있을 때 키 입력을 감지
+        // 키 입력과 동작을 "ESCAPE"라는 이름으로 매핑
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
         getRootPane().getActionMap().put("ESCAPE", escapeAction);
+
+        // 화면 크기 가져오기
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         // 메인 패널 설정 - 유령 애니메이션이 있는 커스텀 패널
         JPanel mainPanel = new JPanel(null) {
@@ -63,19 +85,20 @@ public class MainMenu extends JFrame {
                 drawFogEffect(g2d);
             }
         };
+        mainPanel.setPreferredSize(screenSize);
         add(mainPanel);
 
         // 게임 제목 뚜렷하게
-        JLabel titleLabel = new JLabel("유령 피하기", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("유령을 피해라", SwingConstants.CENTER);
         titleLabel.setFont(createHorrorFont(72));
-        titleLabel.setForeground(Color.WHITE);  // 순수한 흰색으로 변경
-        titleLabel.setBounds(0, 100, getWidth(), 100);
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setBounds(0, 100, screenSize.width, 100);
 
         // 제목에 더 강한 테두리 효과 추가
         titleLabel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(5, 5, 5, 5),
             BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(255, 0, 0), 4),  // 더 두꺼운 테두리
+                BorderFactory.createLineBorder(new Color(255, 0, 0), 4),
                 BorderFactory.createEmptyBorder(5, 15, 5, 15)
             )
         ));
@@ -83,8 +106,9 @@ public class MainMenu extends JFrame {
         // 그림자 효과 강화
         JLabel shadowLabel = new JLabel("유령 피하기", SwingConstants.CENTER);
         shadowLabel.setFont(createHorrorFont(72));
-        shadowLabel.setForeground(new Color(255, 0, 0, 180));  // 더 진한 그림자
-        shadowLabel.setBounds(3, 103, getWidth(), 100);  // 그림자 위치 조정
+        shadowLabel.setForeground(new Color(255, 0, 0, 180));
+        shadowLabel.setBounds(3, 103, screenSize.width, 100);
+
         mainPanel.add(shadowLabel);
         mainPanel.add(titleLabel);
 
@@ -94,7 +118,6 @@ public class MainMenu extends JFrame {
         JButton creditsButton = createHorrorButton("만든이");
 
         // 버튼 위치 설정
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int startY = screenSize.height / 2 - 100;
 
         startButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY, BUTTON_WIDTH, BUTTON_HEIGHT);
@@ -138,6 +161,7 @@ public class MainMenu extends JFrame {
         mainPanel.add(versionLabel);
     }
 
+    // 유령 애니메이션의 초기 위치를 설정하는 메서드
     private void initializeAnimationPositions() {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         int centerX = screenSize.width / 2;
@@ -188,7 +212,7 @@ public class MainMenu extends JFrame {
     }
 
     private void startGhostAnimation() {
-        ghostAnimationTimer = new Timer(50, e -> {
+        ghostAnimationTimer = new Timer(10, e -> {
             if (fadeIn) {
                 ghostAlpha += 5;
                 if (ghostAlpha >= 255) {
@@ -209,24 +233,83 @@ public class MainMenu extends JFrame {
         //효과음 구현하기
     }
 
-    // 다이얼로그 스타일 수정
+    // 사운드 제어 메소드 추가
+    private void toggleSound() {
+        if (backgroundSound != null) {
+            if (isSoundPlaying) {
+                backgroundSound.stop();
+            } else {
+                backgroundSound.setFramePosition(0);
+                backgroundSound.loop(Clip.LOOP_CONTINUOUSLY);  // 다시 시작할 때도 무한 반복 설정
+            }
+            isSoundPlaying = !isSoundPlaying;
+        }
+    }
+
+    private void adjustVolume(float change) {
+        if (volumeControl != null) {
+            try {
+                float currentVolume = volumeControl.getValue();
+                float newVolume = currentVolume + change;
+                
+                // 볼륨 범위 제한
+                newVolume = Math.max(volumeControl.getMinimum(), Math.min(volumeControl.getMaximum(), newVolume));
+                volumeControl.setValue(newVolume);
+            } catch (Exception e) {
+                System.out.println("볼륨 조절 중 오류 발생: " + e.getMessage());
+            }
+        }
+    }
+
+    // 설정 다이얼로그에 사운드 컨트롤 추가
     private void showCustomDialog(String title, String message) {
         JDialog dialog = new JDialog(this, title, true);
         dialog.setLayout(new BorderLayout());
 
         JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(new Color(20, 20, 30));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // 기존 텍스트 영역
         JTextArea textArea = new JTextArea(message);
-        textArea.setFont(new Font("맑은 고딕", Font.BOLD, 18));  // 더 두꺼운 폰트와 크기 증가
-        textArea.setForeground(Color.WHITE);  // 순수한 흰색
+        textArea.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        textArea.setForeground(Color.WHITE);
         textArea.setBackground(new Color(20, 20, 30));
         textArea.setEditable(false);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
-        
         panel.add(textArea);
+
+        // 사운드 컨트롤 패널 추가
+        if (title.equals("설정")) {
+            JPanel soundPanel = new JPanel();
+            soundPanel.setLayout(new FlowLayout());
+            soundPanel.setBackground(new Color(20, 20, 30));
+
+            // 음악 켜기/끄기 버튼
+            JButton toggleButton = new JButton(isSoundPlaying ? "음악 끄기" : "음악 켜기");
+            toggleButton.addActionListener(e -> {
+                toggleSound();
+                toggleButton.setText(isSoundPlaying ? "음악 끄기" : "음악 켜기");
+            });
+
+            // 볼륨 조절 슬라이더
+            JSlider volumeSlider = new JSlider(JSlider.HORIZONTAL, -40, 6, -20);
+            volumeSlider.setBackground(new Color(20, 20, 30));
+            volumeSlider.setForeground(Color.WHITE);
+            volumeSlider.addChangeListener(e -> {
+                if (volumeControl != null) {
+                    volumeControl.setValue(volumeSlider.getValue());
+                }
+            });
+
+            soundPanel.add(toggleButton);
+            soundPanel.add(volumeSlider);
+            panel.add(Box.createVerticalStrut(20));
+            panel.add(soundPanel);
+        }
+
         dialog.add(panel, BorderLayout.CENTER);
         
         JButton okButton = createHorrorButton("확인");
@@ -457,6 +540,73 @@ public class MainMenu extends JFrame {
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+    }
+
+    // 사운드 초기화 메소드 추가
+    private void initializeSound() {
+        try {
+            // 절대 경로 사용
+            String absolutePath = "/Users/hyunki/Desktop/Test2/src/resources/324960__amliebsch__ghost-piano-1.wav";
+            File soundFile = new File(absolutePath);
+            
+            if (!soundFile.exists()) {
+                System.err.println("파일을 찾을 수 없습니다: " + soundFile.getAbsolutePath());
+                soundFile = new File("Test2/src/resources/324960__amliebsch__ghost-piano-1.wav");
+                if (!soundFile.exists()) {
+                    System.err.println("상대 경로에서도 파일을 찾을 수 없습니다: " + soundFile.getAbsolutePath());
+                    return;
+                }
+            }
+            
+            // 오디오 스트림 생성
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+            AudioFormat format = audioStream.getFormat();
+            
+            // 필요한 경우 오디오 포맷 변환
+            if (format.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+                AudioFormat targetFormat = new AudioFormat(
+                    AudioFormat.Encoding.PCM_SIGNED,
+                    format.getSampleRate(),
+                    16,
+                    format.getChannels(),
+                    format.getChannels() * 2,
+                    format.getSampleRate(),
+                    false
+                );
+                audioStream = AudioSystem.getAudioInputStream(targetFormat, audioStream);
+            }
+            
+            // Clip 생성 및 열기
+            backgroundSound = AudioSystem.getClip();
+            backgroundSound.open(audioStream);
+            
+            // 볼륨 컨트롤 설정
+            try {
+                volumeControl = (FloatControl) backgroundSound.getControl(FloatControl.Type.MASTER_GAIN);
+                volumeControl.setValue(-20.0f);
+            } catch (IllegalArgumentException e) {
+                System.out.println("볼륨 조절이 지원되지 않습니다: " + e.getMessage());
+                volumeControl = null;
+            }
+            
+            // 무한 반복 재생 설정 (-1은 무한 반복을 의미)
+            backgroundSound.loop(Clip.LOOP_CONTINUOUSLY);
+            isSoundPlaying = true;
+            
+        } catch (Exception e) {
+            System.err.println("사운드 로드 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // 창이 닫힐 때 사운드 정리
+    @Override
+    public void dispose() {
+        if (backgroundSound != null) {
+            backgroundSound.stop();
+            backgroundSound.close();
+        }
+        super.dispose();
     }
 
     public static void main(String[] args) {

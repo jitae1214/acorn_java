@@ -3,7 +3,18 @@ package javaproject;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+/*
+주요 기능:
+- 게임의 핵심 로직을 관리
+- 플레이어와 유령의 위치, 이동 처리
+- 버프 효과 및 특수 칸 효과 처리
+- 게임 상태 관리
 
+개선 가능한 부분:
+- 게임 저장/로드 기능 추가 필요
+- 난이도 조절 시스템 구현 필요
+- 멀티플레이어 지원 고려
+*/
 class GameMaster {
     private ArrayList<Stage> board;  // 보드 맵
     private int userLoc;            // 유저 현재위치

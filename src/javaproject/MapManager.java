@@ -11,14 +11,18 @@ import java.util.Scanner;
 //각 맵은 텍스트 파일로 저장
 //맵 요소는 ,구분자로 구분했음
 
-//사용된 기호:
-//  N: 일반 칸
-//  E: 이벤트 칸
-//  G: 유령 칸
-//  B: 버프 칸
-//  F+: 앞으로 이동
-//  F-: 뒤로 이동
-//  FG: 유령 방향 이동
+/*
+주요 기능:
+- 게임 맵 생성 및 관리
+- 맵 파일 로드/저장
+- 맵 스타일별 시각화 처리
+- 보드 상태 관리
+
+개선 가능한 부분:
+- 맵 에디터 기능 추가 고려
+- 맵 검증 시스템 강화 필요
+- 다양한 맵 형식 지원 확장
+*/
 public class MapManager {
     private ArrayList<Stage> board;
     private String currentMapStyle;

@@ -7,8 +7,15 @@ import java.util.ArrayList;
 import java.util.Random;
 
 /*
-  1. GUI 클래스 추가
-  2. 콘솔 버전에서 그래픽 인터페이스로 변경하기 위한 메인 클래스
+주요 기능:
+- 게임의 그래픽 인터페이스를 담당
+- 보드 게임판, 주사위, 상태 표시 등을 시각적으로 구현
+- 게임 진행 상황을 실시간으로 업데이트
+
+개선 가능한 부분:
+- 화면 크기 조절 시 레이아웃 자동 조정 기능 추가 필요
+- 애니메이션 효과 더 부드럽게 개선 가능
+- 사운드 효과 구현 필요
 */
 
 // JFrame은 Java Swing에서 제공하는 가장 기본적인 윈도우(창) 컨테이너
@@ -167,6 +174,7 @@ public class GameGUI extends JFrame {
                 g2d.setPaint(gradient);
                 g2d.fillOval(x + SQUARE_SIZE/4, y + SQUARE_SIZE/2, SQUARE_SIZE/2, SQUARE_SIZE/2);
             }
+
 
             // 유령 위치 표시 (그라데이션 효과 추가)
             if (i == game.getGhostLoc()) {
