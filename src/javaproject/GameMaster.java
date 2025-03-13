@@ -372,4 +372,19 @@ class GameMaster {
 	public ArrayList<Stage> getBoard() {
 		return board;
 	}
+
+	// MapManager getter 메서드 추가
+	public MapManager getMapManager() {
+		return mapManager;
+	}
+
+	// 맵 스타일 설정 메서드 추가
+	public void setCurrentMapStyle(String style) {
+		this.currentMapStyle = style;
+	}
+
+	// 보드 setter 메서드 추가
+	public void setBoard(ArrayList<Stage> board) {
+		this.board = board;
+	}
 }

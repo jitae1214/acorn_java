@@ -6,13 +6,14 @@ import java.awt.event.*;
 import java.util.Arrays;
 import javax.sound.sampled.*;
 import java.io.File;
+import java.io.IOException;
 /*
 주요 기능:
 - 게임의 시작 화면 구현
 - 맵 선택, 설정, 제작자 정보 표시
 - 유령 애니메이션 효과
 - UI/UX 디자인
-
+*/
 public class MainMenu extends JFrame {
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 60;
@@ -499,29 +500,38 @@ public class MainMenu extends JFrame {
                 dialog.dispose();
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    GameGUI game = new GameGUI();
-                    GameMaster gameMaster = new GameMaster();
-                    // 선택된 맵 스타일 설정
-                    switch(mapIndex) {
-                        case 0: // 기본 맵
-                            gameMaster.getMapManager().initializeDefaultBoard();
-                            gameMaster.setCurrentMapStyle("기본");
-                            break;
-                        case 1: // 원형 트랙
-                            gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
-                            gameMaster.setCurrentMapStyle("원형 트랙");
-                            break;
-                        case 2: // 블록 퍼즐
-                            gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
-                            gameMaster.setCurrentMapStyle("블록 퍼즐");
-                            break;
+                    try {
+                        GameGUI game = new GameGUI();
+                        GameMaster gameMaster = new GameMaster();
+                        // 선택된 맵 스타일 설정
+                        switch(mapIndex) {
+                            case 0: // 기본 맵
+                                gameMaster.getMapManager().initializeDefaultBoard();
+                                gameMaster.setCurrentMapStyle("기본");
+                                break;
+                            case 1: // 원형 트랙
+                                gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
+                                gameMaster.setCurrentMapStyle("원형 트랙");
+                                break;
+                            case 2: // 블록 퍼즐
+                                gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
+                                gameMaster.setCurrentMapStyle("블록 퍼즐");
+                                break;
+                        }
+                        // 맵 매니저에서 생성된 보드를 GameMaster에 설정
+                        gameMaster.setBoard(gameMaster.getMapManager().getBoard());
+                        game.setGameMaster(gameMaster);
+                        game.setVisible(true);
+                        // 게임 시작 효과음 재생
+                        playSpookySound();
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(null,
+                            "맵을 불러오는 중 오류가 발생했습니다: " + e.getMessage(),
+                            "오류",
+                            JOptionPane.ERROR_MESSAGE);
+                        System.err.println("맵 로딩 오류: " + e.getMessage());
+                        e.printStackTrace();
                     }
-                    // 맵 매니저에서 생성된 보드를 GameMaster에 설정
-                    gameMaster.setBoard(gameMaster.getMapManager().getBoard());
-                    game.setGameMaster(gameMaster);
-                    game.setVisible(true);
-                    // 게임 시작 효과음 재생
-                    playSpookySound();
                 });
             });
 
@@ -616,4 +626,4 @@ public class MainMenu extends JFrame {
         });
     }
 }
-*/
+
