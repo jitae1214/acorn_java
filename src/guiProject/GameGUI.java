@@ -24,14 +24,31 @@ import java.awt.image.BufferedImage;
 
 // JFrame은 Java Swing에서 제공하는 가장 기본적인 윈도우(창) 컨테이너
 public class GameGUI extends JFrame {
+    // 게임의 전반적인 로직과 상태를 관리하는 GameMaster 인스턴스
     private GameMaster game;
+    
+    // 게임 보드를 표시하는 패널
     private JPanel boardPanel;
+    
+    // 주사위 굴리기 기능을 제공하는 버튼
     private JButton diceButton;
+    
+    // 현재 게임 상태(턴, 이벤트 등)를 표시하는 레이블
     private JLabel statusLabel;
+    
+    // 현재 적용된 버프 효과를 표시하는 레이블
     private JLabel buffLabel;
+    
+    // 플레이어의 현재 위치를 표시하는 레이블
     private JLabel locationLabel;
+    
+    // 보드판의 각 칸의 크기를 정의하는 상수 (픽셀 단위)
     private static int SQUARE_SIZE = 60;
+    
+    // 보드판의 전체 칸 수를 정의하는 상수
     private static final int BOARD_SIZE = 30;
+    
+    // 주사위 굴리기에 사용되는 난수 생성기
     private Random random = new Random();
     
     // 주사위 관련 필드 추가
@@ -52,25 +69,38 @@ public class GameGUI extends JFrame {
         loadDiceImages();
     }
 
+    /**
+     * 주사위 이미지를 로드하는 메소드
+     * 실제 이미지 파일이 없는 경우 기본 주사위 이미지를 생성하여 사용
+     */
     private void loadDiceImages() {
+        // 6면 주사위 이미지를 저장할 배열 초기화
         diceImages = new ImageIcon[6];
+        
+        // 1부터 6까지의 주사위 면에 대한 이미지 로드
         for (int i = 1; i <= 6; i++) {
             try {
+                // 주사위 이미지 파일 경로 설정
                 String imagePath = "/Users/hyunki/Desktop/Test2/src/resources/dice" + i + ".png";
                 File file = new File(imagePath);
+                
                 if (file.exists()) {
+                    // 이미지 파일이 존재하는 경우
                     ImageIcon originalIcon = new ImageIcon(imagePath);
+                    // 이미지 크기를 DICE_SIZE에 맞게 조정 (부드러운 스케일링 적용)
                     Image image = originalIcon.getImage().getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH);
                     diceImages[i-1] = new ImageIcon(image);
                 } else {
+                    // 이미지 파일이 없는 경우 에러 메시지 출력
                     System.err.println("주사위 이미지 파일을 찾을 수 없습니다: " + imagePath);
-                    // 이미지가 없을 경우 기본 주사위 이미지 생성
+                    // 기본 주사위 이미지 생성하여 사용
                     BufferedImage defaultDice = createDefaultDiceImage(i);
                     diceImages[i-1] = new ImageIcon(defaultDice.getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH));
                 }
             } catch (Exception e) {
+                // 이미지 로드 중 예외 발생 시 에러 메시지 출력
                 System.err.println("주사위 이미지 로드 실패: " + e.getMessage());
-                // 예외 발생 시 기본 주사위 이미지 생성
+                // 예외 발생 시에도 기본 주사위 이미지 생성하여 사용
                 BufferedImage defaultDice = createDefaultDiceImage(i);
                 diceImages[i-1] = new ImageIcon(defaultDice.getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH));
             }
@@ -82,7 +112,7 @@ public class GameGUI extends JFrame {
         BufferedImage image = new BufferedImage(DICE_SIZE, DICE_SIZE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
         
-        // 안티앨리어싱 설정
+        // 안티앨리어싱(선명하게 계단효과 제거) 설정
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
         // 주사위 배경
@@ -333,7 +363,7 @@ public class GameGUI extends JFrame {
         itemPanel.setBackground(new Color(0, 0, 0, 0));
         itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // 심볼
+        // 심볼(칸 마다 알맞게 직관적으로 표시 하기)
         JLabel symbolLabel = new JLabel(symbol);
         symbolLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
         symbolLabel.setForeground(symbolColor);
@@ -352,66 +382,70 @@ public class GameGUI extends JFrame {
         panel.add(Box.createVerticalStrut(10));
     }
 
-    /*
-     * 보드 그리기 메소드
-     * 콘솔의 문자 기반 출력을 그래픽으로 변경
-     * - 각 칸을 사각형으로 표시
-     * - 플레이어와 유령을 원으로 표시
-     * - 칸 번호 표시
-     */
+    // 게임 보드를 그리는 메서드: 보드의 모든 시각적 요소를 렌더링
     private void drawBoard(Graphics g) {
+        // 안티앨리어싱을 적용하여 더 부드러운 그래픽 표현을 위한 2D 그래픽스 설정
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
+        // 게임 보드의 현재 상태 가져오기
         ArrayList<Stage> board = game.getBoard();
-        int margin = SQUARE_SIZE / 2;
+        int margin = SQUARE_SIZE / 2;  // 각 칸 사이의 여백 설정
         
-        // 미로 스타일의 레이아웃을 위한 설정
+        // 미로 스타일의 레이아웃을 위한 그리드 설정
         int cols = 6; // 가로 6칸
         int rows = 5; // 세로 5칸
+        // 보드를 화면 중앙에 배치하기 위한 시작 좌표 계산
         int startX = (boardPanel.getWidth() - (cols * (SQUARE_SIZE + margin))) / 2;
         int startY = (boardPanel.getHeight() - (rows * (SQUARE_SIZE + margin))) / 2;
 
+        // 보드에 사용될 폰트 설정
         Font boardFont = new Font("맑은 고딕", Font.BOLD, SQUARE_SIZE / 4);
         g2d.setFont(boardFont);
 
-        // 미로 연결선 그리기
+        // 미로의 연결선 그리기 (칸과 칸 사이의 경로)
         g2d.setColor(new Color(100, 100, 100));
         g2d.setStroke(new BasicStroke(3));
         drawMazeConnections(g2d, startX, startY, margin);
 
-        // 각 칸 그리기
+        // 보드의 각 칸을 순회하며 그리기
         for (int i = 0; i < BOARD_SIZE; i++) {
+            // 현재 칸의 행과 열 위치 계산
             int row = i / cols;
             int col = i % cols;
+            // 현재 칸의 실제 x, y 좌표 계산
             int x = startX + col * (SQUARE_SIZE + margin);
             int y = startY + row * (SQUARE_SIZE + margin);
 
-            // 칸 그리기 (그림자 효과 추가)
-            g2d.setColor(new Color(180, 180, 180));
-            g2d.fillRect(x + 3, y + 3, SQUARE_SIZE, SQUARE_SIZE);
-            g2d.setColor(getSquareColor(board.get(i)));
-            g2d.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
-            g2d.setColor(Color.BLACK);
-            g2d.drawRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
+            // 각 칸 그리기 (그림자 효과 포함)
+            g2d.setColor(new Color(180, 180, 180));  // 그림자 색상
+            g2d.fillRect(x + 3, y + 3, SQUARE_SIZE, SQUARE_SIZE);  // 그림자
+            g2d.setColor(getSquareColor(board.get(i)));  // 칸의 메인 색상
+            g2d.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);  // 메인 사각형
+            g2d.setColor(Color.BLACK);  // 테두리 색상
+            g2d.drawRect(x, y, SQUARE_SIZE, SQUARE_SIZE);  // 테두리
 
-            // 칸 번호 표시
+            // 각 칸의 번호 표시
             String number = String.valueOf(i + 1);
             FontMetrics metrics = g2d.getFontMetrics();
+            // 번호를 칸의 중앙에 배치하기 위한 좌표 계산
             int numberX = x + (SQUARE_SIZE - metrics.stringWidth(number)) / 2;
             int numberY = y + metrics.getHeight();
             g2d.drawString(number, numberX, numberY);
 
-            // 칸 심볼 그리기
+            // 각 칸의 특수 심볼 그리기 (함정, 아이템 등)
             drawSquareSymbol(g2d, board.get(i), x, y, i);
 
-            // 플레이어와 유령 위치 표시
+            // 플레이어와 유령의 현재 위치 표시
             if (i == game.getUserLoc() && i == game.getGhostLoc()) {
+                // 플레이어와 유령이 같은 칸에 있는 경우
                 drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
                 drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             } else if (i == game.getUserLoc()) {
+                // 플레이어만 있는 경우
                 drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             } else if (i == game.getGhostLoc()) {
+                // 유령만 있는 경우
                 drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             }
         }

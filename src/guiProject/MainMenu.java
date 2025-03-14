@@ -16,30 +16,51 @@ import java.util.Arrays;
 */
 
 public class MainMenu extends JFrame {
+    // 메인 메뉴의 모든 버튼에 적용될 기본 너비 (픽셀 단위)
     private static final int BUTTON_WIDTH = 300;
-    private static final int BUTTON_HEIGHT = 60;
-    private Timer ghostAnimationTimer;
-    private int ghostAlpha = 0;
-    private boolean fadeIn = true;
     
+    // 메인 메뉴의 모든 버튼에 적용될 기본 높이 (픽셀 단위)
+    private static final int BUTTON_HEIGHT = 60;
+    
+    // 유령 페이드 인/아웃 효과를 제어하는 타이머
+    private Timer ghostAnimationTimer;
+
+    // 유령의 현재 투명도 값 (0~255)
+    private int ghostAlpha = 0;
+
+    // 유령이 나타나는 중인지(true) 사라지는 중인지(false) 나타내는 상태 값
+    private boolean fadeIn = true;
+
     // 유령 애니메이션을 위한 필드들
-    private Point ghostPosition; //유령 위치
+    private Point ghostPosition;  // 화면상의 유령의 현재 x, y 좌표를 저장하는 Point 객체
+
+    // 유령의 원형 움직임을 위한 각도 값 (라디안 단위)
     private double ghostAngle = 0;
+
+    // 유령이 원을 그리며 움직일 때의 원의 반지름 (픽셀 단위)
     private static final int ANIMATION_RADIUS = 200;
+    
+    // 유령의 이동 속도를 제어하는 상수 (값이 클수록 더 빠르게 이동)
     private static final int GHOST_SPEED = 1;
 
-    // 사운드 관련 필드 추가
+    // 배경 음악을 재생하고 제어하기 위한 Clip 객체
     private Clip backgroundSound;
+    
+    // 배경 음악의 볼륨을 조절하기 위한 컨트롤러
     private FloatControl volumeControl;
+    
+    // 현재 배경 음악의 재생 상태를 나타내는 플래그 (true: 재생 중, false: 정지)
     private boolean isSoundPlaying = false;
 
     private GameGUI gameGUI;
 
+    // MainMenu 클래스의 생성자: 게임의 메인 화면을 초기화하고 구성요소들을 설정
+    // 생성자라고 생각 하면 됨
     public MainMenu() {
-        initializeUI();
-        initializeAnimationPositions();
-        startGhostAnimation();
-        initializeSound();  // 사운드 초기화
+        initializeUI();          // UI 컴포넌트 초기화 및 화면 구성
+        initializeAnimationPositions(); // 유령 애니메이션의 시작 위치 설정
+        startGhostAnimation();   // 유령의 페이드 인/아웃 애니메이션 시작
+        initializeSound();       // 배경 음악 로드 및 재생 설정
     }
 
     private void initializeUI() {
@@ -74,7 +95,7 @@ public class MainMenu extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 
-                // 어두운 그라데이션 배경
+                // 어두운 그라데이션 전체적인 메인배경
                 GradientPaint gradient = new GradientPaint(
                     0, 0, new Color(20, 20, 30),
                     0, getHeight(), new Color(40, 40, 60)
@@ -108,7 +129,7 @@ public class MainMenu extends JFrame {
         ));
 
         // 그림자 효과 강화
-        JLabel shadowLabel = new JLabel("유령 피하기", SwingConstants.CENTER);
+        JLabel shadowLabel = new JLabel("유령을 피해라", SwingConstants.CENTER);
         shadowLabel.setFont(createHorrorFont(72));
         shadowLabel.setForeground(new Color(255, 0, 0, 180));
         shadowLabel.setBounds(3, 103, screenSize.width, 100);
@@ -116,7 +137,7 @@ public class MainMenu extends JFrame {
         mainPanel.add(shadowLabel);
         mainPanel.add(titleLabel);
 
-        // 버튼 생성 및 스타일링
+        // 초기 화면 버튼 생성 및 스타일링
         JButton startButton = createHorrorButton("게임 시작");
         JButton settingsButton = createHorrorButton("설정");
         JButton creditsButton = createHorrorButton("제작자들");
@@ -209,7 +230,7 @@ public class MainMenu extends JFrame {
             g2d.fillOval(x, y, fogSize, fogSize);
         }
     }
-
+        
     private void startGhostAnimation() {
         ghostAnimationTimer = new Timer(10, e -> {
             if (fadeIn) {
@@ -552,7 +573,7 @@ public class MainMenu extends JFrame {
         dialog.setVisible(true);
     }
 
-    // 제작자 정보 애니메이션 다이얼로그
+    // 제작자 정보 크레딧 애니메이션
     private void showCreditsAnimation() {
         JDialog dialog = new JDialog(this, "제작자들", true);
         dialog.setUndecorated(true);
@@ -578,7 +599,7 @@ public class MainMenu extends JFrame {
         panel.setBackground(new Color(20, 20, 30));
         dialog.add(panel);
 
-        // 제작자 이름 레이블 생성
+        // 제작자 이름 크레딧 생성
         String[] credits = {
             "최지태 - 다들 수고 많으셨습니다",
             "정연수 - 덕분에 좋은 경험 했습니다",
@@ -639,12 +660,12 @@ public class MainMenu extends JFrame {
     private void initializeSound() {
         try {
             // 절대 경로 사용
-            String absolutePath = "res/324960__amliebsch__ghost-piano-1.wav";
+            String absolutePath = "res/resources/324960__amliebsch__ghost-piano-1.wav";
             File soundFile = new File(absolutePath);
             
             if (!soundFile.exists()) {
                 System.err.println("파일을 찾을 수 없습니다: " + soundFile.getAbsolutePath());
-                soundFile = new File("Test2/src/resources/324960__amliebsch__ghost-piano-1.wav");
+                soundFile = new File("res/324960__amliebsch__ghost-piano-1.wav");
                 if (!soundFile.exists()) {
                     System.err.println("상대 경로에서도 파일을 찾을 수 없습니다: " + soundFile.getAbsolutePath());
                     return;
