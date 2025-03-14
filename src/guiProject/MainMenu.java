@@ -14,6 +14,7 @@ import java.util.Arrays;
 - 유령 애니메이션 효과
 - UI/UX 디자인
 */
+
 public class MainMenu extends JFrame {
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 60;
@@ -118,12 +119,14 @@ public class MainMenu extends JFrame {
         // 버튼 생성 및 스타일링
         JButton startButton = createHorrorButton("게임 시작");
         JButton settingsButton = createHorrorButton("설정");
+        JButton creditsButton = createHorrorButton("제작자들");
 
         // 버튼 위치 설정
         int startY = screenSize.height / 2 - 100;
 
         startButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY, BUTTON_WIDTH, BUTTON_HEIGHT);
         settingsButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY + 80, BUTTON_WIDTH, BUTTON_HEIGHT);
+        creditsButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY + 160, BUTTON_WIDTH, BUTTON_HEIGHT);
 
         // 버튼 이벤트 처리
         startButton.addActionListener(e -> {
@@ -140,8 +143,14 @@ public class MainMenu extends JFrame {
                 "- 유령 속도: 빠름");
         });
 
+        creditsButton.addActionListener(e -> {
+            playSpookySound();
+            showCreditsAnimation();
+        });
+
         mainPanel.add(startButton);
         mainPanel.add(settingsButton);
+        mainPanel.add(creditsButton);
 
         // 버전 정보 레이블 수정 - 더 선명한 텍스트
         JLabel versionLabel = new JLabel("ver. 1.0.0", SwingConstants.RIGHT);
@@ -540,6 +549,89 @@ public class MainMenu extends JFrame {
         dialog.add(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // 제작자 정보 애니메이션 다이얼로그
+    private void showCreditsAnimation() {
+        JDialog dialog = new JDialog(this, "제작자들", true);
+        dialog.setUndecorated(true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 배경 그라데이션
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(20, 20, 30),
+                    0, getHeight(), new Color(40, 40, 60)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        panel.setBackground(new Color(20, 20, 30));
+        dialog.add(panel);
+
+        // 제작자 이름 레이블 생성
+        String[] credits = {
+            "최지태 - 다들 수고 많으셨습니다",
+            "정연수 - 덕분에 좋은 경험 했습니다",
+            "김유민 - 남은 기간도 화이팅!!",
+            "이정호 - 프로젝트도 끝났으니 술 한잔",
+            "윤현기 - 하시죠~"
+        };
+        JLabel[] nameLabels = new JLabel[credits.length];
+        
+        for (int i = 0; i < credits.length; i++) {
+            nameLabels[i] = new JLabel(credits[i], SwingConstants.CENTER);
+            nameLabels[i].setFont(new Font("맑은 고딕", Font.BOLD, 20));
+            nameLabels[i].setForeground(Color.WHITE);
+            nameLabels[i].setBounds(0, dialog.getHeight(), dialog.getWidth(), 40);
+            
+            // 역할 부분에 색상 변경을 위한 HTML 적용
+            String[] parts = credits[i].split(" - ");
+            nameLabels[i].setText("<html><font color='white'>" + parts[0] + 
+                                "</font> - <font color='#FFB6C1'>" + parts[1] + "</font></html>");
+            
+            panel.add(nameLabels[i]);
+        }
+
+        // 애니메이션 타이머
+        Timer[] timers = new Timer[credits.length];
+        for (int i = 0; i < credits.length; i++) {
+            final int index = i;
+            timers[i] = new Timer(2000 + (i * 1500), new ActionListener() {
+                private int yPos = dialog.getHeight();
+                private Timer moveTimer;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    moveTimer = new Timer(10, e2 -> {
+                        yPos -= 2;
+                        nameLabels[index].setBounds(0, yPos, dialog.getWidth(), 40);
+                        
+                        if (yPos <= (index * 50) + 20) {
+                            moveTimer.stop();
+                        }
+                    });
+                    moveTimer.start();
+                }
+            });
+            timers[i].setRepeats(false);
+            timers[i].start();
+        }
+
+        // 닫기 버튼
+        Timer closeTimer = new Timer(12000, e -> dialog.dispose());
+        closeTimer.setRepeats(false);
+        closeTimer.start();
+
         dialog.setVisible(true);
     }
 
