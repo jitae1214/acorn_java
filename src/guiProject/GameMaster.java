@@ -28,8 +28,6 @@ class GameMaster {
 	private MapManager mapManager; // 맵 관리자
 	private GameGUI gameGUI;  // GameGUI 참조 추가
 	static final int GHOST_FORCE_MOVE = -9999;
-	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
-
 
 	public GameMaster() throws IOException {
 		this.userLoc = 0; // 시작 위치
@@ -45,19 +43,7 @@ class GameMaster {
 
 	// 주사위 던지는 메서드
 	public int diceRoll() {
-<<<<<<< HEAD
-		int dice = random.nextInt(6) + 1;
-	    int buffedDice = applyBuff(dice);
-	    
-	    // "gDouble" 버프는 초기화하지 않음
-	    if (buff == null || !buff.equals("gDouble")) {
-	        buff = "normal"; // 플레이어 버프만 초기화
-	    }
-	    
-	    return buffedDice;
-=======
 		return random.nextInt(6) + 1;
->>>>>>> YHK
 	}
 
 //    public int diceRoll() {
@@ -68,13 +54,9 @@ class GameMaster {
 
 	// 유저 움직이는 메서드
 	public int userMove(int distance) {
-<<<<<<< HEAD
-		previousLoc = userLoc; // 현재 위치 저장
-=======
 		// 현재 위치의 스테이지 효과 적용 (버프 설정)
 		nowLocation();
 
->>>>>>> YHK
 		// 버프 효과 적용
 		int actualDistance = applyBuff(distance);
 
@@ -99,14 +81,9 @@ class GameMaster {
 	// 유령 이동 메서드
 	public int ghostMove(int ghostDistance) {
 		int actualGhostDistance = applyGhostBuff(ghostDistance);
-	    ghostLoc = ghostLoc + actualGhostDistance;
-	    
-	    // 유령 버프 사용 후 초기화
-	    if (buff != null && buff.equals("gDouble")) {
-	        buff = "normal";
-	    }
-	    
-	    return actualGhostDistance;
+
+		ghostLoc = ghostLoc + actualGhostDistance;
+		return actualGhostDistance;
 	}
 
 	// 버프 효과를 적용하는 private 메서드
@@ -165,23 +142,8 @@ class GameMaster {
 				}
 			} else if (currentStage instanceof EventStage) {
 				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
-<<<<<<< HEAD
-				if (eventQuiz) {
-					System.out.println("\n정답입니다!!!\n");
-				} else {
-					System.out.println("\n오답입니다...\n");
-					userLoc = previousLoc; // 오답 시 이전 위치로 돌아감
-=======
 				if (!eventQuiz) {
->>>>>>> YHK
 					ghostMove(ghostDistance);
-					System.out.println("유령이 이동했습니다.");
-					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-					if (ghostLoc >= getUserLoc()) {
-						System.out.println("유령에게 잡혔습니다.");
-						System.out.println("게임이 종료되었습니다.");
-						System.exit(0);
-					}
 				}
 			}
 			
