@@ -384,11 +384,11 @@ public class GameGUI extends JFrame {
         boardPanel.repaint();
     }
 
-    // 퀴즈 다이얼로그 표시 메소드 추가
+    // 퀴즈 다이얼로그 표시 메소드
     public void showQuizDialog(Quiz quiz) {
         JDialog dialog = new JDialog(this, "퀴즈!", true);
         dialog.setLayout(new BorderLayout());
-        dialog.setUndecorated(true); // 타이틀바 제거
+        dialog.setUndecorated(true);
 
         // 메인 패널
         JPanel mainPanel = new JPanel();
@@ -404,24 +404,72 @@ public class GameGUI extends JFrame {
         mainPanel.add(questionLabel);
         mainPanel.add(Box.createVerticalStrut(20));
 
-        // 보기 버튼들
-        String[] options = quiz.getExample().split("/");
-        ButtonGroup group = new ButtonGroup();
-        JPanel optionsPanel = new JPanel();
-        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-        optionsPanel.setBackground(new Color(20, 20, 30));
+        // 답변 입력 컴포넌트
+        JComponent answerComponent;
+        String example = quiz.getExample();
 
-        for (String option : options) {
-            JRadioButton radioButton = new JRadioButton(option.trim());
-            radioButton.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
-            radioButton.setForeground(Color.WHITE);
-            radioButton.setBackground(new Color(20, 20, 30));
-            radioButton.setAlignmentX(Component.LEFT_ALIGNMENT);
-            group.add(radioButton);
-            optionsPanel.add(radioButton);
-            optionsPanel.add(Box.createVerticalStrut(10));
+        if (example.contains("/")) {
+            // 객관식 문제
+            answerComponent = new JPanel();
+            ((JPanel)answerComponent).setLayout(new BoxLayout((JPanel)answerComponent, BoxLayout.Y_AXIS));
+            answerComponent.setBackground(new Color(20, 20, 30));
+            
+            ButtonGroup group = new ButtonGroup();
+            ArrayList<JRadioButton> radioButtons = new ArrayList<>();
+
+            String[] options = example.split("/");
+            for (String option : options) {
+                String trimmedOption = option.trim();
+                if (!trimmedOption.isEmpty()) {
+                    JRadioButton radioButton = new JRadioButton(trimmedOption);
+                    radioButton.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+                    radioButton.setForeground(Color.WHITE);
+                    radioButton.setBackground(new Color(20, 20, 30));
+                    
+                    // 라디오 버튼 패널 생성
+                    JPanel radioPanel = new JPanel(new BorderLayout());
+                    radioPanel.setBackground(new Color(20, 20, 30));
+                    radioPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                    radioPanel.add(radioButton, BorderLayout.WEST);
+                    
+                    group.add(radioButton);
+                    radioButtons.add(radioButton);
+                    answerComponent.add(radioPanel);
+                    answerComponent.add(Box.createVerticalStrut(10));
+                }
+            }
+
+            // 첫 번째 라디오 버튼 선택
+            if (!radioButtons.isEmpty()) {
+                radioButtons.get(0).setSelected(true);
+            }
+        } else {
+            // 서술형 문제
+            JPanel inputPanel = new JPanel();
+            inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+            inputPanel.setBackground(new Color(20, 20, 30));
+
+            // 답안 입력 필드
+            JTextField textField = new JTextField();
+            textField.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+            textField.setPreferredSize(new Dimension(300, 30));
+            textField.setMaximumSize(new Dimension(300, 30));
+            
+            // 힌트 레이블 (있는 경우)
+            if (!example.isEmpty()) {
+                JLabel hintLabel = new JLabel("힌트: " + example);
+                hintLabel.setFont(new Font("맑은 고딕", Font.ITALIC, 14));
+                hintLabel.setForeground(new Color(200, 200, 200));
+                hintLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                inputPanel.add(hintLabel);
+                inputPanel.add(Box.createVerticalStrut(10));
+            }
+            
+            inputPanel.add(textField);
+            answerComponent = inputPanel;
         }
-        mainPanel.add(optionsPanel);
+
+        mainPanel.add(answerComponent);
         mainPanel.add(Box.createVerticalStrut(20));
 
         // 확인 버튼
@@ -429,28 +477,45 @@ public class GameGUI extends JFrame {
         submitButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.addActionListener(e -> {
-            for (Component c : optionsPanel.getComponents()) {
-                if (c instanceof JRadioButton) {
-                    JRadioButton rb = (JRadioButton) c;
-                    if (rb.isSelected()) {
-                        boolean correct = quiz.isCorrect(rb.getText());
-                        dialog.dispose();
-                        
-                        // 결과 표시
-                        if (correct) {
-                            showResultDialog("정답입니다!", true);
-                        } else {
-                            showResultDialog("오답입니다...", false);
-                            // 오답 시 유령 이동
-                            game.ghostMove(3);
+            String userAnswer;
+            if (answerComponent instanceof JPanel && ((JPanel)answerComponent).getComponent(0) instanceof JPanel) {
+                // 객관식 답변 처리
+                for (Component c : ((JPanel)answerComponent).getComponents()) {
+                    if (c instanceof JPanel) {
+                        JRadioButton rb = (JRadioButton)((JPanel)c).getComponent(0);
+                        if (rb.isSelected()) {
+                            userAnswer = rb.getText();
+                            boolean correct = quiz.isCorrect(userAnswer);
+                            dialog.dispose();
+                            
+                            if (correct) {
+                                showResultDialog("정답입니다!", true);
+                            } else {
+                                showResultDialog("오답입니다...", false);
+                                game.ghostMove(3);
+                            }
+                            break;
                         }
-                        break;
                     }
+                }
+            } else {
+                // 서술형 답변 처리
+                JTextField textField = (JTextField)((JPanel)answerComponent).getComponent(
+                    ((JPanel)answerComponent).getComponentCount() - 1);
+                userAnswer = textField.getText().trim();
+                boolean correct = quiz.isCorrect(userAnswer);
+                dialog.dispose();
+                
+                if (correct) {
+                    showResultDialog("정답입니다!", true);
+                } else {
+                    showResultDialog("오답입니다...", false);
+                    game.ghostMove(3);
                 }
             }
         });
-        mainPanel.add(submitButton);
 
+        mainPanel.add(submitButton);
         dialog.add(mainPanel);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
