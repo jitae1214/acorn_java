@@ -53,13 +53,11 @@ public class GameGUI extends JFrame {
      */
     private void initializeUI() {
         setTitle("유령 피하기 보드게임");
-        setLayout(new BorderLayout());
-
-        // 전체 화면 설정
-        setExtendedState(JFrame.MAXIMIZED_BOTH); //창 전체 화면
-        setUndecorated(true); // 창 테두리 제거
-
-        // ESC 키로 전체 화면 종료 가능하게 설정
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
+        
+        // ESC 키로 종료 기능 추가
         KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Action escapeAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -70,26 +68,11 @@ public class GameGUI extends JFrame {
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
         getRootPane().getActionMap().put("ESCAPE", escapeAction);
 
-        // 상태 패널 (상단) - 폰트 크기 증가
-        JPanel statusPanel = new JPanel(new GridLayout(3, 1));
-        statusPanel.setBackground(new Color(240, 240, 240));
-        statusPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        Font largeFont = new Font("맑은 고딕", Font.BOLD, 24);
-        statusLabel = new JLabel("게임 시작!", SwingConstants.CENTER);
-        buffLabel = new JLabel("현재 버프: normal", SwingConstants.CENTER);
-        locationLabel = new JLabel("현재 위치: 1번 칸", SwingConstants.CENTER);
+        // 메인 패널 생성
+        JLayeredPane layeredPane = new JLayeredPane();
+        setContentPane(layeredPane);
         
-        statusLabel.setFont(largeFont);
-        buffLabel.setFont(largeFont);
-        locationLabel.setFont(largeFont);
-
-        statusPanel.add(statusLabel);
-        statusPanel.add(buffLabel);
-        statusPanel.add(locationLabel);
-        add(statusPanel, BorderLayout.NORTH);
-
-        // 보드 패널 (중앙) - 크기 조정
+        // 보드 패널 설정
         boardPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -97,29 +80,60 @@ public class GameGUI extends JFrame {
                 drawBoard(g);
             }
         };
-        boardPanel.setBackground(Color.WHITE);
-        // 화면 크기에 맞게 보드 크기 조정
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int boardWidth = (int)(screenSize.width * 0.8);
-        int boardHeight = (int)(screenSize.height * 0.6);
-        boardPanel.setPreferredSize(new Dimension(boardWidth, boardHeight));
-        add(new JScrollPane(boardPanel), BorderLayout.CENTER);
-
-        // 주사위 버튼 패널 (하단)
-        JPanel controlPanel = new JPanel();
-        controlPanel.setBackground(new Color(240, 240, 240));
-        controlPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        boardPanel.setBackground(new Color(20, 20, 30));
+        boardPanel.setOpaque(true);
         
+        // 상태 정보 레이블 설정
+        statusLabel = new JLabel("게임 시작!", SwingConstants.LEFT);
+        buffLabel = new JLabel("현재 버프: normal", SwingConstants.LEFT);
+        locationLabel = new JLabel("현재 위치: 1번 칸", SwingConstants.LEFT);
+        
+        Font statusFont = new Font("맑은 고딕", Font.BOLD, 16);
+        statusLabel.setFont(statusFont);
+        buffLabel.setFont(statusFont);
+        locationLabel.setFont(statusFont);
+        
+        statusLabel.setForeground(Color.WHITE);
+        buffLabel.setForeground(Color.WHITE);
+        locationLabel.setForeground(Color.WHITE);
+
+        // 상태 패널 설정
+        JPanel statusPanel = new JPanel();
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
+        statusPanel.setOpaque(false);
+        statusPanel.add(statusLabel);
+        statusPanel.add(buffLabel);
+        statusPanel.add(locationLabel);
+        
+        // 주사위 버튼 설정
         diceButton = new JButton("주사위 굴리기");
-        diceButton.setFont(largeFont);
-        diceButton.setPreferredSize(new Dimension(200, 60));
+        diceButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        diceButton.setPreferredSize(new Dimension(150, 50));
         diceButton.addActionListener(e -> rollDice());
-        
-        controlPanel.add(diceButton);
-        add(controlPanel, BorderLayout.SOUTH);
 
-        // 전체 화면 크기에 맞게 SQUARE_SIZE 조정
-        SQUARE_SIZE = Math.min(boardWidth / 11, boardHeight / 5);
+        // 각 화면에 필요한 ui의 크기와 위치 설정
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                Dimension size = getContentPane().getSize();
+                
+                // 보드 패널을 전체 화면으로 설정
+                boardPanel.setBounds(0, 0, size.width, size.height);
+                
+                // 상태 패널 위치 (좌상단)
+                statusPanel.setBounds(20, 20, 200, 100);
+                
+                // 주사위 버튼 위치 (우하단)
+                diceButton.setBounds(size.width - 170, size.height - 70, 150, 50);
+                
+                // SQUARE_SIZE 조정
+                SQUARE_SIZE = Math.min(size.width / 15, size.height / 7);
+            }
+        });
+
+        // 레이어드 패널에 컴포넌트 추가
+        layeredPane.add(boardPanel, JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(statusPanel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(diceButton, JLayeredPane.PALETTE_LAYER);
     }
 
     /*
