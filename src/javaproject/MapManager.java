@@ -24,10 +24,11 @@ import java.util.Scanner;
 - 다양한 맵 형식 지원 확장
 */
 public class MapManager {
+    Scanner scanner = new Scanner(System.in);
     private ArrayList<Stage> board;
     private String currentMapStyle;
-    private static final int BOARD_SIZE = 30;
-    private static final int GHOST_FORCE_MOVE = -9999; // 유령 방향 이동을 위한 기본 값
+    private final int BOARD_SIZE = 30;
+    private final int GHOST_FORCE_MOVE = -9999; // 유령 방향 이동을 위한 기본 값
 
 
     public MapManager() {
@@ -36,7 +37,6 @@ public class MapManager {
     }
 
     public ArrayList<Stage> selectAndLoadMap() {
-        Scanner scanner = new Scanner(System.in);
         System.out.println("\n=== 맵 선택 ===");
         System.out.println("1. 기본 맵");
         System.out.println("2. 원형 트랙");
@@ -182,18 +182,6 @@ public class MapManager {
 
     public String getCurrentMapStyle() {
         return currentMapStyle;
-    }
-
-    public void setCurrentMapStyle(String style) {
-        this.currentMapStyle = style;
-    }
-
-    public int getBoardSize() {
-        return BOARD_SIZE;
-    }
-
-    public ArrayList<Stage> getBoard() {
-        return board;
     }
 
     // 맵 스타일에 따른 시각적 표현을 위한 메서드 추가

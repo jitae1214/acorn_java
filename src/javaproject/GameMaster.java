@@ -1,9 +1,8 @@
 package javaproject;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
+
 /*
 주요 기능:
 - 게임의 핵심 로직을 관리
@@ -17,50 +16,61 @@ import java.util.Scanner;
 - 멀티플레이어 지원 고려
 */
 class GameMaster {
-	private ArrayList<Stage> board; // 보드 맵
-	private int userLoc; // 유저 현재위치
-	private String buff; // 유저 이동거리 변화 효과
-	private static final int BOARD_SIZE = 30; // 보드 크기
-	private Random random; // 주사위 용 랜덤 객체
-	private int ghostLoc; // 유령 위치
-	private int ghostDistance; // 유령 이동 거리
-	private String currentMapStyle; // 현재 맵 스타일
 	private MapManager mapManager; // 맵 관리자
-	static final int GHOST_FORCE_MOVE = -9999;
+	private QuizManager quizManager;
+
+	private final int BOARD_SIZE = 30; // 보드 크기
+	private final int GHOST_FORCE_MOVE = -9999;
+
+	private ArrayList<Stage> board; // 보드 맵
 	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
 
-	public GameMaster() throws IOException {
+	private int userLoc; // 유저 현재위치
+	private String buff; // 유저 이동거리 변화 효과
+
+	private int ghostLoc; // 유령 위치
+	private int ghostDistance; // 유령 이동 거리
+
+	public GameMaster() {
 		this.userLoc = 0; // 시작 위치
+		this.buff = "normal"; // 버프 초기값 설정
 		this.ghostLoc = 0; // 유령 시작 위치
 		this.ghostDistance = 3; // 유령 기본 이동 거리
-		this.buff = "normal"; // 버프 초기값 설정
-		this.random = new Random();
 		this.mapManager = new MapManager();
 		this.board = mapManager.selectAndLoadMap();
-		this.currentMapStyle = mapManager.getCurrentMapStyle();
-		QuizManager.quizSetting();
+		mapManager.getCurrentMapStyle();
+		quizManager = new QuizManager();
 	}
 
 	// 주사위 던지는 메서드
-	public int diceRoll() {
-		buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
-		return random.nextInt(6) + 1;
-	}
+//	public int diceRoll() {
+//		
+//		int dice = random.nextInt(6) + 1;
+//	    int buffedDice = applyBuff(dice);
+//	    
+//	    // "gDouble" 버프는 초기화하지 않음
+//	    if (buff == null || !buff.equals("gDouble")) {
+//	        buff = "normal"; // 플레이어 버프만 초기화
+//	    }
+//	    
+//	    return buffedDice;
+//	}
 
-//    public int diceRoll() {
-//    	Scanner sc = new Scanner(System.in);
-//    	int dice = sc.nextInt();
-//    	return dice;
-//    }
+    public int diceRoll() {
+    	Scanner sc = new Scanner(System.in);
+    	int dice = sc.nextInt();
+    	int buffedDice = applyBuff(dice);
+    	if (buff == null || !buff.equals("gDouble")) {
+	        buff = "normal"; // 플레이어 버프만 초기화
+	    }
+    	return buffedDice;
+    }
 
 	// 유저 움직이는 메서드
-	public int userMove(int distance) {
-		previousLoc = userLoc; // 현재 위치 저장
+	private int userMove(int distance) {
 		// 버프 효과 적용
-		int actualDistance = applyBuff(distance);
-
 		// 새로운 위치 계산
-		int newLocation = userLoc + actualDistance;
+		int newLocation = userLoc + applyBuff(distance);
 
 		// 보드 크기를 넘어가지 않도록 처리
 		if (newLocation >= BOARD_SIZE) {
@@ -71,18 +81,20 @@ class GameMaster {
 			userLoc = newLocation;
 		}
 
-		// 현재 위치의 스테이지 효과 적용
-		nowLocation();
-
 		return userLoc;
 	}
 
 	// 유령 이동 메서드
 	public int ghostMove(int ghostDistance) {
-		int actualGhostDistance = applyGhostBuff(ghostDistance);
-
-		ghostLoc = ghostLoc + actualGhostDistance;
-		return actualGhostDistance;
+		 int actualGhostDistance = applyGhostBuff(ghostDistance);
+		    ghostLoc = ghostLoc + actualGhostDistance;
+		    
+		    // 유령 버프 사용 후 초기화
+		    if (buff != null && buff.equals("gDouble")) {
+		        buff = "normal";
+		    }
+		    
+		    return actualGhostDistance;
 	}
 
 	// 버프 효과를 적용하는 private 메서드
@@ -102,11 +114,14 @@ class GameMaster {
 			return distance + 1;
 		case "minus1":
 			return distance - 1;
+		case "gdouble":
+			this.ghostDistance *= 2;
+			return distance;
 		default:
 			return distance;
 		}
 	}
-
+	
 	private int applyGhostBuff(int ghostDistance) {
 		switch (buff.toLowerCase()) {
 		case "gdouble":
@@ -117,7 +132,7 @@ class GameMaster {
 	}
 
 	// 현재 위치의 칸 정보 확인
-	public void nowLocation() {
+	private void nowLocation() {
 		if (userLoc >= 0 && userLoc < board.size()) {
 			Stage currentStage = board.get(userLoc);
 			currentStage.도착(userLoc);
@@ -138,15 +153,8 @@ class GameMaster {
 
 			} else if (currentStage instanceof GhostStage) {
 				ghostMove(ghostDistance);
-				System.out.println("유령이 이동했습니다.");
-				System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-				if (ghostLoc == getUserLoc()) {
-					System.out.println("유령에게 잡혔습니다.");
-					System.out.println("게임이 종료되었습니다.");
-					System.exit(0);
-				}
 			} else if (currentStage instanceof EventStage) {
-				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
+				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc, quizManager);
 				if (eventQuiz) {
 					System.out.println("\n정답입니다!!!\n");
 				} else {
@@ -155,7 +163,7 @@ class GameMaster {
 					ghostMove(ghostDistance);
 					System.out.println("유령이 이동했습니다.");
 					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-					if (ghostLoc == getUserLoc()) {
+					if (ghostLoc >= userLoc) {
 						System.out.println("유령에게 잡혔습니다.");
 						System.out.println("게임이 종료되었습니다.");
 						System.exit(0);
@@ -168,12 +176,12 @@ class GameMaster {
 	}
 
 	// 골 도착 확인
-	public boolean checkGoal() {
+	private boolean checkGoal() {
 		return userLoc == BOARD_SIZE - 1;
 	}
 
 	// 보드 상태 출력
-	public void printBoard() {
+	private void printBoard() {
 		String RESET = "\u001B[0m";
 		String RED = "\u001B[31m";
 		String GREEN = "\u001B[32m";
@@ -350,6 +358,8 @@ class GameMaster {
 			System.out.println("주사위: " + dice);
 
 			userMove(dice);
+			// 현재 위치의 스테이지 효과 적용
+			nowLocation();
 			printBoard();
 		}
 
@@ -357,44 +367,4 @@ class GameMaster {
 		scanner.close();
 	}
 
-	// getter/setter 메서드들
-	public int getUserLoc() {
-		return userLoc;
-	}
-
-	public void setUserLoc(int userLoc) {
-		this.userLoc = userLoc;
-	}
-
-	public String getBuff() {
-		return buff;
-	}
-
-	public void setBuff(String buff) {
-		this.buff = buff;
-	}
-
-	public int getGhostLoc() {
-		return ghostLoc;
-	}
-
-	// 보드 getter 메서드 추가
-	public ArrayList<Stage> getBoard() {
-		return board;
-	}
-
-	public void setBoard(ArrayList<Stage> board) {
-		this.board = board;
-	}
-
-	public MapManager getMapManager() {
-		return mapManager;
-	}
-
-	public void setCurrentMapStyle(String style) {
-		this.currentMapStyle = style;
-		if (mapManager != null) {
-			mapManager.setCurrentMapStyle(style);
-		}
-	}
 }
