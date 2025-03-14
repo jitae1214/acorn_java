@@ -27,6 +27,7 @@ class GameMaster {
 	private String currentMapStyle; // 현재 맵 스타일
 	private MapManager mapManager; // 맵 관리자
 	static final int GHOST_FORCE_MOVE = -9999;
+	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
 
 	public GameMaster() throws IOException {
 		this.userLoc = 0; // 시작 위치
@@ -54,6 +55,7 @@ class GameMaster {
 
 	// 유저 움직이는 메서드
 	public int userMove(int distance) {
+		previousLoc = userLoc; // 현재 위치 저장
 		// 버프 효과 적용
 		int actualDistance = applyBuff(distance);
 
@@ -149,9 +151,15 @@ class GameMaster {
 					System.out.println("\n정답입니다!!!\n");
 				} else {
 					System.out.println("\n오답입니다...\n");
+					userLoc = previousLoc; // 오답 시 이전 위치로 돌아감
 					ghostMove(ghostDistance);
 					System.out.println("유령이 이동했습니다.");
 					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
+					if (ghostLoc == getUserLoc()) {
+						System.out.println("유령에게 잡혔습니다.");
+						System.out.println("게임이 종료되었습니다.");
+						System.exit(0);
+					}
 				}
 			} else if (currentStage instanceof NormalStage) {
 				System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
