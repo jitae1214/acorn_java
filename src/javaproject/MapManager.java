@@ -184,6 +184,10 @@ public class MapManager {
         return currentMapStyle;
     }
 
+    public void setCurrentMapStyle(String style) {
+        this.currentMapStyle = style;
+    }
+
     public int getBoardSize() {
         return BOARD_SIZE;
     }

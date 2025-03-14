@@ -25,7 +25,7 @@ class GameMaster {
 	private int ghostLoc; // 유령 위치
 	private int ghostDistance; // 유령 이동 거리
 	private String currentMapStyle; // 현재 맵 스타일
-	private MapManager mapManager; // 맵 관리자
+	protected MapManager mapManager; // 맵 관리자
 	static final int GHOST_FORCE_MOVE = -9999;
 
 	public GameMaster() throws IOException {
@@ -371,5 +371,20 @@ class GameMaster {
 	// 보드 getter 메서드 추가
 	public ArrayList<Stage> getBoard() {
 		return board;
+	}
+
+	public void setBoard(ArrayList<Stage> board) {
+		this.board = board;
+	}
+
+	public MapManager getMapManager() {
+		return mapManager;
+	}
+
+	public void setCurrentMapStyle(String style) {
+		this.currentMapStyle = style;
+		if (mapManager != null) {
+			mapManager.setCurrentMapStyle(style);
+		}
 	}
 }
