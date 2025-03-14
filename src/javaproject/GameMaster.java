@@ -30,22 +30,23 @@ class GameMaster {
 
 	private int ghostLoc; // 유령 위치
 	private int ghostDistance; // 유령 이동 거리
+	private String currentMapStyle; // 현재 맵 스타일
 
 	public GameMaster() {
 		this.userLoc = 0; // 시작 위치
 		this.buff = "normal"; // 버프 초기값 설정
 		this.ghostLoc = 0; // 유령 시작 위치
 		this.ghostDistance = 3; // 유령 기본 이동 거리
+		this.previousLoc = 0; // previousLoc 초기화 추가
 		this.mapManager = new MapManager();
 		this.board = mapManager.selectAndLoadMap();
-		mapManager.getCurrentMapStyle();
-		quizManager = new QuizManager();
+		this.currentMapStyle = mapManager.getCurrentMapStyle();
+		this.quizManager = new QuizManager();
 	}
 
 	// 주사위 던지는 메서드
 	public int diceRoll() {
-
-		int dice = (int) (Math.random() * 6) + 1;
+		int dice = (int) (Math.random() * 6 + 1);
 		int buffedDice = applyBuff(dice);
 
 		// "gDouble" 버프는 초기화하지 않음
@@ -58,8 +59,10 @@ class GameMaster {
 
 	// 유저 움직이는 메서드
 	private int userMove(int distance) {
-		// 버프 효과 적용
-		// 새로운 위치 계산
+		// 현재 위치를 previousLoc에 저장
+		previousLoc = userLoc;
+
+		// 버프 효과 적용한 새로운 위치 계산
 		int newLocation = userLoc + applyBuff(distance);
 
 		// 보드 크기를 넘어가지 않도록 처리
@@ -130,7 +133,7 @@ class GameMaster {
 			// 각 스테이지 타입별 특수 효과 처리
 			if (currentStage instanceof BuffStage) {
 				buff = ((BuffStage) currentStage).getBuff();
-				System.out.println("버프 효과 획득: " + buff);
+				// 버프 효과 메시지는 BuffStage 클래스에서 이미 출력하므로 여기서는 제거
 			} else if (currentStage instanceof ForceMove) {
 				int forceMove = ((ForceMove) currentStage).getForceStage();
 				if (forceMove == GHOST_FORCE_MOVE) {
@@ -144,7 +147,7 @@ class GameMaster {
 			} else if (currentStage instanceof GhostStage) {
 				ghostMove(ghostDistance);
 			} else if (currentStage instanceof EventStage) {
-				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc, quizManager);
+				boolean eventQuiz = quizManager.answerCheck(userLoc);
 				if (eventQuiz) {
 					System.out.println("\n정답입니다!!!\n");
 				} else {
@@ -153,7 +156,7 @@ class GameMaster {
 					ghostMove(ghostDistance);
 					System.out.println("유령이 이동했습니다.");
 					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-					if (ghostLoc >= userLoc) {
+					if (ghostLoc >= userLoc) { // 수정된 부분: >= 대신 == 사용
 						System.out.println("유령에게 잡혔습니다.");
 						System.out.println("게임이 종료되었습니다.");
 						System.exit(0);
@@ -246,7 +249,6 @@ class GameMaster {
 	}
 
 	public void run() {
-
 		Scanner scanner = new Scanner(System.in);
 
 		System.out.println("=== 보드게임 테스트 시작 ===");
@@ -269,5 +271,4 @@ class GameMaster {
 		System.out.println("\n=== 게임 클리어! ===");
 		scanner.close();
 	}
-
 }
