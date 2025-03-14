@@ -43,7 +43,6 @@ class GameMaster {
 
 	// 주사위 던지는 메서드
 	public int diceRoll() {
-		buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
 		return random.nextInt(6) + 1;
 	}
 
@@ -55,6 +54,9 @@ class GameMaster {
 
 	// 유저 움직이는 메서드
 	public int userMove(int distance) {
+		// 현재 위치의 스테이지 효과 적용 (버프 설정)
+		nowLocation();
+
 		// 버프 효과 적용
 		int actualDistance = applyBuff(distance);
 
@@ -70,8 +72,8 @@ class GameMaster {
 			userLoc = newLocation;
 		}
 
-		// 현재 위치의 스테이지 효과 적용
-		nowLocation();
+		// 이동 후 버프 초기화
+		buff = "normal";
 
 		return userLoc;
 	}
@@ -92,26 +94,25 @@ class GameMaster {
 			return distance;
 		}
 
-		switch (buff.toLowerCase()) {
-		case "double":
-			return distance * 2;
-		case "half":
-			return distance / 2;
-		case "plus1":
-			return distance + 1;
-		case "minus1":
-			return distance - 1;
-		default:
-			return distance;
+		switch (buff) {
+			case "uDouble":
+				return distance * 2;
+			case "uHalfPlusOne":
+				return 1 + (distance / 2);
+			case "gDouble":
+				// 유령 버프는 유저 이동에 영향을 주지 않음
+				return distance;
+			default:
+				return distance;
 		}
 	}
 
 	private int applyGhostBuff(int ghostDistance) {
-		switch (buff.toLowerCase()) {
-		case "gdouble":
-			return ghostDistance * 2;
-		default:
-			return ghostDistance;
+		switch (buff) {
+			case "gDouble":
+				return ghostDistance * 2;
+			default:
+				return ghostDistance;
 		}
 	}
 
@@ -132,7 +133,6 @@ class GameMaster {
 					forceMove = -(userLoc - ghostLoc) + 1;
 				}
 				userMove(forceMove);
-
 			} else if (currentStage instanceof GhostStage) {
 				ghostMove(ghostDistance);
 				if (ghostLoc == getUserLoc()) {
