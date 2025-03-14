@@ -23,6 +23,7 @@ class GameMaster {
 	private final int GHOST_FORCE_MOVE = -9999;
 
 	private ArrayList<Stage> board; // 보드 맵
+	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
 
 	private int userLoc; // 유저 현재위치
 	private String buff; // 유저 이동거리 변화 효과
@@ -120,6 +121,15 @@ class GameMaster {
 			return distance;
 		}
 	}
+	
+	private int applyGhostBuff(int ghostDistance) {
+		switch (buff.toLowerCase()) {
+		case "gdouble":
+			return ghostDistance * 2;
+		default:
+			return ghostDistance;
+		}
+	}
 
 	// 현재 위치의 칸 정보 확인
 	private void nowLocation() {
@@ -142,7 +152,7 @@ class GameMaster {
 				userMove(forceMove);
 
 			} else if (currentStage instanceof GhostStage) {
-				ghostMove();
+				ghostMove(ghostDistance);
 			} else if (currentStage instanceof EventStage) {
 				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc, quizManager);
 				if (eventQuiz) {
@@ -153,7 +163,7 @@ class GameMaster {
 					ghostMove(ghostDistance);
 					System.out.println("유령이 이동했습니다.");
 					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-					if (ghostLoc >= getUserLoc()) {
+					if (ghostLoc >= userLoc) {
 						System.out.println("유령에게 잡혔습니다.");
 						System.out.println("게임이 종료되었습니다.");
 						System.exit(0);
