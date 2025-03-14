@@ -61,13 +61,13 @@ public class QuizManager {
     // 문제풀이 실패하면 false 성공하면 true
 	static boolean answerCheck(int location) {
 		Scanner sc = new Scanner(System.in);
-		int timeLimit;
+		int timeLimit; //제한시간 변수
 		
 		//도착한 이벤트 칸의 난이도 판별
 		String difficulty;
 	    if (location > 0 && location <= 10) {
 	        difficulty = "EASY";
-	        timeLimit = 1000 * 60; //easy 제한시간 : 1분
+	        timeLimit = 1000 * 10; //easy 제한시간 : 1분
 	    } else if (location > 10 && location <= 20) {
 	        difficulty = "NORMAL";
 	        timeLimit = 1000 * 180; //easy 제한시간 : 3분
@@ -89,8 +89,8 @@ public class QuizManager {
 	    int randomIndex = (int) (Math.random() * selectedList.size());
 	    Quiz quiz = selectedList.get(randomIndex);
 	    
-	    QuizTimer timer = new QuizTimer();
-	    timer.startTimer(timeLimit);
+	    QuizTimer timer = new QuizTimer(); //QuizTimer 가져옴
+	    timer.startTimer(timeLimit); //제한 시간 셋팅
 	   
 	    // 문제 출력
 	    System.out.println(quiz.getContent());
@@ -99,25 +99,25 @@ public class QuizManager {
 	    //정답 입력
 	    System.out.print("\n정답을 입력하세요: ");
 	    
-	    long startTime = System.currentTimeMillis(); // 시작 시간 기록
-	    String userAnswer = null;
-	    while (System.currentTimeMillis() - startTime < timeLimit) {
+	    long startTime = System.currentTimeMillis(); //시작 시간 밀리초 기록
+	    
+	    String userAnswer = null; //사용자의 답변을 저장할 변수
+	    while (System.currentTimeMillis() - startTime < timeLimit) { //제한시간 내에
 	        if (sc.hasNextLine()) { // 사용자가 입력했을 경우
-	            userAnswer = sc.nextLine();
+	            userAnswer = sc.nextLine(); //답변 저장
 	            break;
-	        }
-	        if (timer.isTimeUp()) { // 시간이 초과되었을 경우
-	        	sc.close();
+	        }else if (timer.isTimeUp()) { // 시간이 초과되었을 경우
+	        	sc.close(); //Scanner 객체 닫기
 	            break;
 	        }
 	    }
 
 	    timer.cancelTimer(); // 타이머 정지
 
-	    if (userAnswer == null || timer.isTimeUp()) {
-	        // 시간 초과 시 자동 실패 처리
-	        System.out.println("\n시간 초과! 정답 입력이 실패했습니다.");
-	        quizRemove(quiz, difficulty);
+	    // 시간 초과 시 자동 실패 처리
+	    if (timer.isTimeUp()) {
+	        System.out.println("\n시간 초과!");
+	        quizRemove(quiz, difficulty); //해당 문제 배열에서 삭제
 	        return false;
 	    }
 
