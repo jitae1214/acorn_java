@@ -96,11 +96,12 @@ public class QuizManager {
 	    System.out.println(quiz.getContent());
 	    System.out.println(quiz.getExample());
 	    
+	    long startTime = System.currentTimeMillis();  // 시작 시간 기록
 	    //정답 입력
 	    System.out.print("\n정답을 입력하세요: ");
 	    
 	    String userAnswer = null; //사용자의 답변을 저장할 변수
-	    while (0 < timeLimit) { //제한시간 내에
+	    while (System.currentTimeMillis() - startTime < timeLimit) { //제한시간 내에
 	        if (sc.hasNextLine()) { // 사용자가 입력했을 경우
 	            userAnswer = sc.nextLine(); //답변 저장
 	            break;
@@ -114,7 +115,7 @@ public class QuizManager {
 
 	    // 시간 초과 시 자동 실패 처리
 	    if (timer.isTimeUp()) {
-	        System.out.println("\n시간 초과!");
+	        System.out.println("시간 초과!");
 	        quizRemove(quiz, difficulty); //해당 문제 배열에서 삭제
 	        return false;
 	    }
