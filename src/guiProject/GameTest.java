@@ -1,4 +1,4 @@
-package javaproject;
+package guiProject;
 
 import java.io.IOException;
 
