@@ -150,6 +150,8 @@ class GameMaster {
 				} else {
 					System.out.println("\n오답입니다...\n");
 					ghostMove(ghostDistance);
+					System.out.println("유령이 이동했습니다.");
+					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
 				}
 			} else if (currentStage instanceof NormalStage) {
 				System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
