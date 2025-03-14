@@ -61,15 +61,19 @@ public class QuizManager {
     // 문제풀이 실패하면 false 성공하면 true
 	static boolean answerCheck(int location) {
 		Scanner sc = new Scanner(System.in);
+		int timeLimit;
 		
 		//도착한 이벤트 칸의 난이도 판별
 		String difficulty;
 	    if (location > 0 && location <= 10) {
 	        difficulty = "EASY";
+	        timeLimit = 1000 * 60; //easy 제한시간 : 1분
 	    } else if (location > 10 && location <= 20) {
 	        difficulty = "NORMAL";
+	        timeLimit = 1000 * 180; //easy 제한시간 : 3분
 	    } else {
 	        difficulty = "HARD";
+	        timeLimit = 1000 * 300; //easy 제한시간 : 5분
 	    }
 	    
 	    //난이도에 맞는 문제 리스트 선택
@@ -84,14 +88,38 @@ public class QuizManager {
 	    // 랜덤 문제 선택 (리스트 크기 내에서 인덱스 선택)
 	    int randomIndex = (int) (Math.random() * selectedList.size());
 	    Quiz quiz = selectedList.get(randomIndex);
-
+	    
+	    QuizTimer timer = new QuizTimer();
+	    timer.startTimer(timeLimit);
+	   
 	    // 문제 출력
 	    System.out.println(quiz.getContent());
 	    System.out.println(quiz.getExample());
 	    
 	    //정답 입력
 	    System.out.print("\n정답을 입력하세요: ");
-	    String userAnswer = sc.nextLine();
+	    
+	    long startTime = System.currentTimeMillis(); // 시작 시간 기록
+	    String userAnswer = null;
+	    while (System.currentTimeMillis() - startTime < timeLimit) {
+	        if (sc.hasNextLine()) { // 사용자가 입력했을 경우
+	            userAnswer = sc.nextLine();
+	            break;
+	        }
+	        if (timer.isTimeUp()) { // 시간이 초과되었을 경우
+	        	sc.close();
+	            break;
+	        }
+	    }
+
+	    timer.cancelTimer(); // 타이머 정지
+
+	    if (userAnswer == null || timer.isTimeUp()) {
+	        // 시간 초과 시 자동 실패 처리
+	        System.out.println("\n시간 초과! 정답 입력이 실패했습니다.");
+	        quizRemove(quiz, difficulty);
+	        return false;
+	    }
 
 	    // 정답 체크
 	    if (quiz.isCorrect(userAnswer)) {
