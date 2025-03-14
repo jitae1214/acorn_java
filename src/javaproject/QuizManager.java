@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class QuizManager {
-	ArrayList<Quiz> easy = new ArrayList<>(); // easy 문제 리스트
-	ArrayList<Quiz> normal = new ArrayList<>(); // normal 문제 리스트
-	ArrayList<Quiz> hard = new ArrayList<>(); // hard 문제 리스트
+	private ArrayList<Quiz> easy = new ArrayList<>(); // easy 문제 리스트
+	private ArrayList<Quiz> normal = new ArrayList<>(); // normal 문제 리스트
+	private ArrayList<Quiz> hard = new ArrayList<>(); // hard 문제 리스트
 
 	// 문제들 불러오기
 	public QuizManager() {
@@ -24,7 +24,7 @@ public class QuizManager {
 	}
 
 	// 문제 파일 읽기
-	void loadQuizFile(String fileName, String difficulty) throws IOException {
+	private void loadQuizFile(String fileName, String difficulty) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(fileName)); // 버퍼 리더
 		String line; // 텍스트 파일에 문제 라인 저장 변수
 
@@ -47,7 +47,7 @@ public class QuizManager {
 	}
 
 	// 난이도별 리스트에 문제 추가
-	void addToListDifficulty(String difficulty, Quiz quiz) {
+	private void addToListDifficulty(String difficulty, Quiz quiz) {
 		switch (difficulty) {
 		case "EASY":
 			easy.add(quiz);
@@ -64,7 +64,7 @@ public class QuizManager {
 	}
 
 	// 문제풀이 실패하면 false 성공하면 true
-	boolean answerCheck(int location) {
+	public boolean answerCheck(int location) {
 		Scanner sc = new Scanner(System.in);
 		int timeLimit; // 제한시간 변수
 
@@ -149,7 +149,7 @@ public class QuizManager {
 	}
 
 	// 풀었던 문제 없애는 메서드
-	void quizRemove(Quiz quiz, String difficulty) {
+	private void quizRemove(Quiz quiz, String difficulty) {
 		switch (difficulty) {
 		case "EASY":
 			easy.remove(quiz);
