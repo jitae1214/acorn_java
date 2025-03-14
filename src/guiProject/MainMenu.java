@@ -59,6 +59,7 @@ public class MainMenu extends JFrame {
                 System.exit(0);
             }
         };
+
         // WHEN_IN_FOCUSED_WINDOW: 창이 활성화되어 있을 때 키 입력을 감지
         // 키 입력과 동작을 "ESCAPE"라는 이름으로 매핑
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
@@ -526,6 +527,7 @@ public class MainMenu extends JFrame {
                         // GUI 모드로 설정하고 게임 시작
                         gameMaster.setBoard(gameMaster.getMapManager().getBoard());
                         game.setGameMaster(gameMaster);
+                        gameMaster.setGameGUI(game);  // GameGUI 참조 설정
                         game.setVisible(true);
                         
                         // 게임 시작 효과음 재생

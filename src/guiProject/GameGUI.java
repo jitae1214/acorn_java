@@ -378,10 +378,139 @@ public class GameGUI extends JFrame {
      * UI 업데이트 메소드
      * 콘솔의 전체 화면 갱신을 부분 업데이트로 변경
      */
-    private void updateUI() {
+    public void updateUI() {
         buffLabel.setText("현재 버프: " + game.getBuff());
         locationLabel.setText("현재 위치: " + (game.getUserLoc() + 1) + "번 칸");
         boardPanel.repaint();
+    }
+
+    // 퀴즈 다이얼로그 표시 메소드 추가
+    public void showQuizDialog(Quiz quiz) {
+        JDialog dialog = new JDialog(this, "퀴즈!", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setUndecorated(true); // 타이틀바 제거
+
+        // 메인 패널
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(new Color(20, 20, 30));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // 퀴즈 내용
+        JLabel questionLabel = new JLabel("<html><body style='width: 400px'>" + quiz.getContent() + "</body></html>");
+        questionLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        questionLabel.setForeground(Color.WHITE);
+        questionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(questionLabel);
+        mainPanel.add(Box.createVerticalStrut(20));
+
+        // 보기 버튼들
+        String[] options = quiz.getExample().split("/");
+        ButtonGroup group = new ButtonGroup();
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+        optionsPanel.setBackground(new Color(20, 20, 30));
+
+        for (String option : options) {
+            JRadioButton radioButton = new JRadioButton(option.trim());
+            radioButton.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+            radioButton.setForeground(Color.WHITE);
+            radioButton.setBackground(new Color(20, 20, 30));
+            radioButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+            group.add(radioButton);
+            optionsPanel.add(radioButton);
+            optionsPanel.add(Box.createVerticalStrut(10));
+        }
+        mainPanel.add(optionsPanel);
+        mainPanel.add(Box.createVerticalStrut(20));
+
+        // 확인 버튼
+        JButton submitButton = new JButton("정답 제출");
+        submitButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.addActionListener(e -> {
+            for (Component c : optionsPanel.getComponents()) {
+                if (c instanceof JRadioButton) {
+                    JRadioButton rb = (JRadioButton) c;
+                    if (rb.isSelected()) {
+                        boolean correct = quiz.isCorrect(rb.getText());
+                        dialog.dispose();
+                        
+                        // 결과 표시
+                        if (correct) {
+                            showResultDialog("정답입니다!", true);
+                        } else {
+                            showResultDialog("오답입니다...", false);
+                            // 오답 시 유령 이동
+                            game.ghostMove(3);
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+        mainPanel.add(submitButton);
+
+        dialog.add(mainPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // 퀴즈 결과 다이얼로그
+    private void showResultDialog(String message, boolean isCorrect) {
+        JDialog resultDialog = new JDialog(this, "", true);
+        resultDialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(isCorrect ? new Color(0, 100, 0) : new Color(100, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        JLabel label = new JLabel(message);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        label.setForeground(Color.WHITE);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(label, BorderLayout.CENTER);
+        
+        resultDialog.add(panel);
+        resultDialog.pack();
+        resultDialog.setLocationRelativeTo(this);
+        
+        // 3초 후 자동으로 닫기
+        Timer timer = new Timer(3000, e -> resultDialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        
+        resultDialog.setVisible(true);
+    }
+
+    // 게임 오버 다이얼로그 표시
+    public void showGameOver(String message) {
+        JDialog dialog = new JDialog(this, "게임 오버", true);
+        dialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(100, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        JLabel label = new JLabel(message);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        label.setForeground(Color.WHITE);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(label, BorderLayout.CENTER);
+        
+        dialog.add(panel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        // 3초 후 게임 종료
+        Timer timer = new Timer(3000, e -> {
+            dialog.dispose();
+            System.exit(0);
+        });
+        timer.setRepeats(false);
+        timer.start();
     }
 
     /*

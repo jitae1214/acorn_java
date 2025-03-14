@@ -26,6 +26,7 @@ class GameMaster {
 	private int ghostDistance; // 유령 이동 거리
 	private String currentMapStyle; // 현재 맵 스타일
 	private MapManager mapManager; // 맵 관리자
+	private GameGUI gameGUI;  // GameGUI 참조 추가
 	static final int GHOST_FORCE_MOVE = -9999;
 
 	public GameMaster() throws IOException {
@@ -118,41 +119,36 @@ class GameMaster {
 	public void nowLocation() {
 		if (userLoc >= 0 && userLoc < board.size()) {
 			Stage currentStage = board.get(userLoc);
-			currentStage.도착(userLoc);
 
 			// 각 스테이지 타입별 특수 효과 처리
 			if (currentStage instanceof BuffStage) {
 				buff = ((BuffStage) currentStage).getBuff();
-				System.out.println("버프 효과 획득: " + buff);
+				if (gameGUI != null) {
+					gameGUI.updateUI();
+				}
 			} else if (currentStage instanceof ForceMove) {
 				int forceMove = ((ForceMove) currentStage).getForceStage();
 				if (forceMove == GHOST_FORCE_MOVE) {
 					forceMove = -(userLoc - ghostLoc) + 1;
-					System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
-				} else {
-					System.out.println(forceMove + "칸 강제 이동!");
 				}
 				userMove(forceMove);
 
 			} else if (currentStage instanceof GhostStage) {
 				ghostMove(ghostDistance);
-				System.out.println("유령이 이동했습니다.");
-				System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
 				if (ghostLoc == getUserLoc()) {
-					System.out.println("유령에게 잡혔습니다.");
-					System.out.println("게임이 종료되었습니다.");
-					System.exit(0);
+					if (gameGUI != null) {
+						gameGUI.showGameOver("유령에게 잡혔습니다!");
+					}
 				}
 			} else if (currentStage instanceof EventStage) {
 				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
-				if (eventQuiz) {
-					System.out.println("\n정답입니다!!!\n");
-				} else {
-					System.out.println("\n오답입니다...\n");
+				if (!eventQuiz) {
 					ghostMove(ghostDistance);
 				}
-			} else if (currentStage instanceof NormalStage) {
-				System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
+			}
+			
+			if (gameGUI != null) {
+				gameGUI.updateUI();
 			}
 		}
 	}
@@ -385,6 +381,15 @@ class GameMaster {
 		this.currentMapStyle = style;
 		if (mapManager != null) {
 			mapManager.setCurrentMapStyle(style);
+		}
+	}
+
+	public void setGameGUI(GameGUI gui) {
+		this.gameGUI = gui;
+		for (Stage stage : board) {
+			if (stage instanceof EventStage) {
+				((EventStage) stage).setGameGUI(gui);
+			}
 		}
 	}
 }

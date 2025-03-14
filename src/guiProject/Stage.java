@@ -1,5 +1,8 @@
 package guiProject;
 
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+
 /*
 주요 기능:
 - 게임 보드의 각 칸 타입 정의
@@ -7,36 +10,60 @@ package guiProject;
 - 이벤트 처리 로직
 */
 public interface Stage {
-	// 도착하면 그 칸의 정보가 출력되게 하는 추상 메서드
-	// 전체적으로 도착한 칸이 무슨칸에 도착했는지 보여주면 더 좋을거 같습니다.
+	// 도착했을 때의 동작을 정의하는 메서드
 	void 도착(int stageNum);
 }
 
-class EventStage implements Stage{
-	// 도착하면 그 칸의 정보가 출력
+class EventStage implements Stage {
+	private GameGUI gameGUI;
+
+	public void setGameGUI(GameGUI gui) {
+		this.gameGUI = gui;
+	}
+
 	@Override
 	public void 도착(int stageNum) {
-		System.out.println("현재 위치 : " + stageNum + "칸");
-		System.out.println("현재 칸 : [E]-이벤트\n");
+		// GUI에서 처리하므로 비워둠
 	}
 	
-	// 현재 위치를 받아 문제 풀이 하는 메서드
-	// 문제 풀이 성공하면 true, 실패하면 false 반환
 	public boolean solveQuiz(int location) {
-		return QuizManager.answerCheck(location);
+		String difficulty;
+		if (location > 0 && location <= 10) {
+			difficulty = "EASY";
+		} else if (location > 10 && location <= 20) {
+			difficulty = "NORMAL";
+		} else {
+			difficulty = "HARD";
+		}
+		
+		ArrayList<Quiz> selectedList = QuizManager.getQuizListDifficulty(difficulty);
+		
+		if (selectedList.isEmpty()) {
+			if (gameGUI != null) {
+				JOptionPane.showMessageDialog(gameGUI, "출제할 퀴즈가 없습니다!");
+			}
+			return false;
+		}
+
+		int randomIndex = (int) (Math.random() * selectedList.size());
+		Quiz quiz = selectedList.get(randomIndex);
+
+		if (gameGUI != null) {
+			gameGUI.showQuizDialog(quiz);
+			QuizManager.quizRemove(quiz, difficulty);
+			return true;
+		}
+		return false;
 	}
-	
 }
 
 class ForceMove implements Stage {
-	int forceStage; // 강제 이동할 칸수
+	int forceStage;
 
-	// 생성자 강제 이동할 칸수를 받는다
 	public ForceMove(int forceStage) {
 		this.forceStage = forceStage;
 	}
 
-	// getter 강제 이동할 칸수
 	public int getForceStage() {
 		return forceStage;
 	}
@@ -44,8 +71,7 @@ class ForceMove implements Stage {
 	// 도착하면 그 칸의 정보가 출력
 	@Override
 	public void 도착(int stageNum) {
-		
-		System.out.println("현재 칸 : [F]-강제이동");
+		// GUI에서 처리하므로 비워둠
 	}
 }
 
@@ -68,8 +94,7 @@ class BuffStage implements Stage{
 	
 	@Override
 	public void 도착(int stageNum) {
-		
-		System.out.println("현재 칸 : [B]-아이템");
+		// GUI에서 처리하므로 비워둠
 	}
 }
 
@@ -78,8 +103,7 @@ class GhostStage implements Stage {
 
 	@Override
 	public void 도착(int stageNum) {
-	
-		System.out.println("현재 칸 : [G]-유령");
+		// GUI에서 처리하므로 비워둠
 	}
 }
 
@@ -88,7 +112,6 @@ class NormalStage implements Stage {
 
 	@Override
 	public void 도착(int stageNum) {
-		
-		System.out.println("현재 칸 : [N]-일반");
+		// GUI에서 처리하므로 비워둠
 	}
 }
