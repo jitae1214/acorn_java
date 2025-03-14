@@ -20,8 +20,8 @@ class EventStage implements Stage{
 	
 	// 현재 위치를 받아 문제 풀이 하는 메서드
 	// 문제 풀이 성공하면 true, 실패하면 false 반환
-	public boolean solveQuiz(int location) {
-		return QuizManager.answerCheck(location);
+	public boolean solveQuiz(int location, QuizManager quizManager) {
+		return quizManager.answerCheck(location);
 	}
 	
 }

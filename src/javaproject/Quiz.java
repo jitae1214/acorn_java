@@ -11,9 +11,6 @@ public class Quiz {
 		this.example = example;
 		this.answer = answer;
 	}
-	public Quiz() {
-		
-	}
 	
 	//content값 getter
 	public String getContent() {
@@ -22,10 +19,6 @@ public class Quiz {
 	//examplet값 getter
 	public String getExample() {
 		return example;
-	}
-	//answer값 getter
-	public String getAnswer() {
-		return answer;
 	}
 	
 	// 답확인하는 메서드 
