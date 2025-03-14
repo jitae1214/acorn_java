@@ -14,6 +14,7 @@ public class QuizTimer {
 			//타이머가 끝난 후 실행될 작업을 정의
 			public void run() {
 				timeUp = true; //타이머가 종료되었음을 알리기 윟 true 저장
+				System.out.println("\n시간 종료(엔터키를 눌러주세요)");
 			}
 		}, timeLimit);
 	}
