@@ -47,7 +47,16 @@ class GameMaster {
         this.board = mapManager.selectAndLoadMap();
         this.currentMapStyle = mapManager.getCurrentMapStyle();
         this.quizManager = new QuizManager();
+        
+        try {
+            QuizManager.quizSetting();
+        } catch (IOException e) {
+            System.out.println("퀴즈 파일을 불러오는데 실패했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+    
+    
 
     // 주사위 던지는 메서드
     public int diceRoll() {
@@ -162,7 +171,7 @@ class GameMaster {
                     ghostMove(ghostDistance);
                     System.out.println("유령이 이동했습니다.");
                     System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-                    if (ghostLoc == userLoc) { // 수정된 부분: >= 대신 == 사용
+                    if (ghostLoc >= userLoc) { // 수정된 부분: >= 대신 == 사용
                         System.out.println("유령에게 잡혔습니다.");
                         System.out.println("게임이 종료되었습니다.");
                         System.exit(0);
