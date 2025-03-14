@@ -24,7 +24,6 @@ class GameMaster {
 	private Random random; // 주사위 용 랜덤 객체
 	private int ghostLoc; // 유령 위치
 	private int ghostDistance; // 유령 이동 거리
-	private String currentMapStyle; // 현재 맵 스타일
 	private MapManager mapManager; // 맵 관리자
 	static final int GHOST_FORCE_MOVE = -9999;
 
@@ -36,7 +35,7 @@ class GameMaster {
 		this.random = new Random();
 		this.mapManager = new MapManager();
 		this.board = mapManager.selectAndLoadMap();
-		this.currentMapStyle = mapManager.getCurrentMapStyle();
+		mapManager.getCurrentMapStyle();
 		QuizManager.quizSetting();
 	}
 
@@ -45,12 +44,6 @@ class GameMaster {
 		buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
 		return random.nextInt(6) + 1;
 	}
-
-//    public int diceRoll() {
-//    	Scanner sc = new Scanner(System.in);
-//    	int dice = sc.nextInt();
-//    	return dice;
-//    }
 
 	// 유저 움직이는 메서드
 	public int userMove(int distance) {
@@ -384,7 +377,6 @@ class GameMaster {
 	}
 
 	public void setCurrentMapStyle(String style) {
-		this.currentMapStyle = style;
 		if (mapManager != null) {
 			mapManager.setCurrentMapStyle(style);
 		}
