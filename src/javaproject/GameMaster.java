@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
+<<<<<<< Updated upstream
+=======
+import java.util.Random;
+
+>>>>>>> Stashed changes
 /*
 주요 기능:
 - 게임의 핵심 로직을 관리
@@ -17,6 +22,17 @@ import java.util.Scanner;
 - 멀티플레이어 지원 고려
 */
 class GameMaster {
+<<<<<<< Updated upstream
+=======
+	private MapManager mapManager; // 맵 관리자
+	private QuizManager quizManager;
+	
+	private Random random; // Random 객체 선언
+
+	private final int BOARD_SIZE = 30; // 보드 크기
+	private final int GHOST_FORCE_MOVE = -9999;
+
+>>>>>>> Stashed changes
 	private ArrayList<Stage> board; // 보드 맵
 	private int userLoc; // 유저 현재위치
 	private String buff; // 유저 이동거리 변화 효과
@@ -29,12 +45,21 @@ class GameMaster {
 	static final int GHOST_FORCE_MOVE = -9999;
 	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
 
+<<<<<<< Updated upstream
 	public GameMaster() throws IOException {
+=======
+	public GameMaster() {
+		this.random = new Random();
+>>>>>>> Stashed changes
 		this.userLoc = 0; // 시작 위치
 		this.ghostLoc = 0; // 유령 시작 위치
 		this.ghostDistance = 3; // 유령 기본 이동 거리
+<<<<<<< Updated upstream
 		this.buff = "normal"; // 버프 초기값 설정
 		this.random = new Random();
+=======
+		this.previousLoc = 0; // previousLoc 초기화 추가
+>>>>>>> Stashed changes
 		this.mapManager = new MapManager();
 		this.board = mapManager.selectAndLoadMap();
 		this.currentMapStyle = mapManager.getCurrentMapStyle();
@@ -42,30 +67,31 @@ class GameMaster {
 	}
 
 	// 주사위 던지는 메서드
-//	public int diceRoll() {
-//		
-//		int dice = random.nextInt(6) + 1;
-//	    int buffedDice = applyBuff(dice);
-//	    
-//	    // "gDouble" 버프는 초기화하지 않음
-//	    if (buff == null || !buff.equals("gDouble")) {
-//	        buff = "normal"; // 플레이어 버프만 초기화
-//	    }
-//	    
-//	    return buffedDice;
-//	}
-
-    public int diceRoll() {
-    	Scanner sc = new Scanner(System.in);
-    	int dice = sc.nextInt();
-    	int buffedDice = applyBuff(dice);
-    	if (buff == null || !buff.equals("gDouble")) {
+	public int diceRoll() {
+		
+		int dice = random.nextInt(6) + 1;
+	    int buffedDice = applyBuff(dice);
+	    
+	    // "gDouble" 버프는 초기화하지 않음
+	    if (buff == null || !buff.equals("gDouble")) {
 	        buff = "normal"; // 플레이어 버프만 초기화
 	    }
-    	return buffedDice;
-    }
+	    
+	    return buffedDice;
+	}
+
+//    public int diceRoll() {
+//    	Scanner sc = new Scanner(System.in);
+//    	int dice = sc.nextInt();
+//    	int buffedDice = applyBuff(dice);
+//    	if (buff == null || !buff.equals("gDouble")) {
+//	        buff = "normal"; // 플레이어 버프만 초기화
+//	    }
+//    	return buffedDice;
+//    }
 
 	// 유저 움직이는 메서드
+<<<<<<< Updated upstream
 	public int userMove(int distance) {
 		previousLoc = userLoc; // 현재 위치 저장
 		// 버프 효과 적용
@@ -73,20 +99,32 @@ class GameMaster {
 
 		// 새로운 위치 계산
 		int newLocation = userLoc + actualDistance;
+=======
+	private int userMove(int distance) {
+		 // 현재 위치를 previousLoc에 저장
+	    previousLoc = userLoc;
+	    
+	    // 버프 효과 적용한 새로운 위치 계산
+	    int newLocation = userLoc + applyBuff(distance);
+>>>>>>> Stashed changes
 
-		// 보드 크기를 넘어가지 않도록 처리
-		if (newLocation >= BOARD_SIZE) {
-			userLoc = BOARD_SIZE - 1;
-		} else if (newLocation < 0) {
-			userLoc = 0;
-		} else {
-			userLoc = newLocation;
-		}
+	    // 보드 크기를 넘어가지 않도록 처리
+	    if (newLocation >= BOARD_SIZE) {
+	        userLoc = BOARD_SIZE - 1;
+	    } else if (newLocation < 0) {
+	        userLoc = 0;
+	    } else {
+	        userLoc = newLocation;
+	    }
 
+<<<<<<< Updated upstream
 		// 현재 위치의 스테이지 효과 적용
 		nowLocation();
 
 		return userLoc;
+=======
+	    return userLoc;
+>>>>>>> Stashed changes
 	}
 
 	// 유령 이동 메서드

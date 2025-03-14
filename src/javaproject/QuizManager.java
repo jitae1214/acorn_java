@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 public class QuizManager {
     static ArrayList<Quiz> easy = new ArrayList<>(); //easy 문제 리스트
     static ArrayList<Quiz> normal = new ArrayList<>(); //normal 문제 리스트
