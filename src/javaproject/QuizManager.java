@@ -33,6 +33,7 @@ public class QuizManager {
 				continue; // 건너뛰기
 			}
 			
+			
 			String content = parts[0].trim(); //문제
 			String example = parts[1].trim(); //보기
 			String answer = parts[2].trim(); //답
