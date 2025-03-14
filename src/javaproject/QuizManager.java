@@ -67,13 +67,13 @@ public class QuizManager {
 		String difficulty;
 	    if (location > 0 && location <= 10) {
 	        difficulty = "EASY";
-	        timeLimit = 1000 * 10; //easy 제한시간 : 1분
+	        timeLimit = 1000 * 60; //easy 제한시간 : 1분
 	    } else if (location > 10 && location <= 20) {
 	        difficulty = "NORMAL";
-	        timeLimit = 1000 * 180; //easy 제한시간 : 3분
+	        timeLimit = 1000 * 180; //normal 제한시간 : 3분
 	    } else {
 	        difficulty = "HARD";
-	        timeLimit = 1000 * 300; //easy 제한시간 : 5분
+	        timeLimit = 1000 * 300; //hard 제한시간 : 5분
 	    }
 	    
 	    //난이도에 맞는 문제 리스트 선택
@@ -99,10 +99,8 @@ public class QuizManager {
 	    //정답 입력
 	    System.out.print("\n정답을 입력하세요: ");
 	    
-	    long startTime = System.currentTimeMillis(); //시작 시간 밀리초 기록
-	    
 	    String userAnswer = null; //사용자의 답변을 저장할 변수
-	    while (System.currentTimeMillis() - startTime < timeLimit) { //제한시간 내에
+	    while (0 < timeLimit) { //제한시간 내에
 	        if (sc.hasNextLine()) { // 사용자가 입력했을 경우
 	            userAnswer = sc.nextLine(); //답변 저장
 	            break;
