@@ -2,7 +2,6 @@ package javaproject;
 
 public interface Stage {
 	// 도착하면 그 칸의 정보가 출력되게 하는 추상 메서드
-	// 전체적으로 도착한 칸이 무슨칸에 도착했는지 보여주면 더 좋을거 같습니다.
 	void 도착(int stageNum);
 }
 
