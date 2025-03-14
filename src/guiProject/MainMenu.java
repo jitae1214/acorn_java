@@ -158,7 +158,7 @@ public class MainMenu extends JFrame {
         mainPanel.add(creditsButton);
 
         // 버전 정보 레이블 수정 - 더 선명한 텍스트
-        JLabel versionLabel = new JLabel("v1.0.0 - 악몽 에디션", SwingConstants.RIGHT);
+        JLabel versionLabel = new JLabel("ver. 1.0.0", SwingConstants.RIGHT);
         versionLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));  // 글자 크기 증가
         versionLabel.setForeground(new Color(255, 50, 50)); //선명한 빨간색 효과
         versionLabel.setBounds(screenSize.width - 200, screenSize.height - 40, 180, 20);
@@ -439,8 +439,8 @@ public class MainMenu extends JFrame {
         // 맵 선택 버튼들
         String[][] maps = {
             {"기본 맵", "기본적인 보드 게임 맵입니다."},
-            {"원형 트랙", "원형으로 이어지는 순환형 맵입니다."},
-            {"블록 퍼즐", "여러 갈래 길이 있는 복잡한 맵입니다."}
+            {"원형 트랙", "미완성ㅠㅠ"},
+            {"블록 퍼즐", "미완성ㅠㅠ"}
         };
 
         for (String[] map : maps) {
@@ -503,35 +503,39 @@ public class MainMenu extends JFrame {
                 dialog.dispose();
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    GameGUI game = new GameGUI();
-                    GameMaster gameMaster = null;
                     try {
-                        gameMaster = new GameMaster();
+                        GameGUI game = new GameGUI();
+                        GameMaster gameMaster = new GameMaster();
+                        
+                        // 선택된 맵 스타일 설정
+                        switch(mapIndex) {
+                            case 0: // 기본 맵
+                                gameMaster.getMapManager().initializeDefaultBoard();
+                                gameMaster.setCurrentMapStyle("기본");
+                                break;
+                            case 1: // 원형 트랙
+                                gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
+                                gameMaster.setCurrentMapStyle("원형 트랙");
+                                break;
+                            case 2: // 블록 퍼즐
+                                gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
+                                gameMaster.setCurrentMapStyle("블록 퍼즐");
+                                break;
+                        }
+                        
+                        // GUI 모드로 설정하고 게임 시작
+                        gameMaster.setBoard(gameMaster.getMapManager().getBoard());
+                        game.setGameMaster(gameMaster);
+                        game.setVisible(true);
+                        
+                        // 게임 시작 효과음 재생
+                        playSpookySound();
                     } catch (IOException e) {
-                        System.out.println("맵 파일을 불러오는 중 오류가 발생했습니다: " + e.getMessage());
-                        return;
+                        JOptionPane.showMessageDialog(null, 
+                            "게임 시작 중 오류가 발생했습니다: " + e.getMessage(),
+                            "오류",
+                            JOptionPane.ERROR_MESSAGE);
                     }
-                    // 선택된 맵 스타일 설정
-                    switch(mapIndex) {
-                        case 0: // 기본 맵
-                            gameMaster.getMapManager().initializeDefaultBoard();
-                            gameMaster.setCurrentMapStyle("기본");
-                            break;
-                        case 1: // 원형 트랙
-                            gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
-                            gameMaster.setCurrentMapStyle("원형 트랙");
-                            break;
-                        case 2: // 블록 퍼즐
-                            gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
-                            gameMaster.setCurrentMapStyle("블록 퍼즐");
-                            break;
-                    }
-                    // 맵 매니저에서 생성된 보드를 GameMaster에 설정
-                    gameMaster.setBoard(gameMaster.getMapManager().getBoard());
-                    game.setGameMaster(gameMaster);
-                    game.setVisible(true);
-                    // 게임 시작 효과음 재생
-                    playSpookySound();
                 });
             });
 

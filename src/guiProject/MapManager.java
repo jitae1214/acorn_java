@@ -36,33 +36,9 @@ public class MapManager {
     }
 
     public ArrayList<Stage> selectAndLoadMap() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("\n=== 맵 선택 ===");
-        System.out.println("1. 기본 맵");
-        System.out.println("2. 원형 트랙");
-        System.out.println("3. 블록 퍼즐");
-        System.out.print("맵을 선택하세요 (1-3): ");
-        
-        int choice = scanner.nextInt();
-        
-        switch(choice) {
-            case 1:
-                initializeDefaultBoard();
-                currentMapStyle = "기본";
-                break;
-            case 2:
-                loadMapFromFile("circular_track.txt");
-                currentMapStyle = "원형 트랙";
-                break;
-            case 3:
-                loadMapFromFile("block_puzzle.txt");
-                currentMapStyle = "블록 퍼즐";
-                break;
-            default:
-                System.out.println("잘못된 선택입니다. 기본 맵을 로드합니다.");
-                initializeDefaultBoard();
-                currentMapStyle = "기본";
-        }
+        // 기본 맵으로 초기화
+        initializeDefaultBoard();
+        currentMapStyle = "기본";
         return board;
     }
     public void loadMapFromFile(String filename) {

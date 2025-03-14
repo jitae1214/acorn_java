@@ -1,5 +1,5 @@
 package guiProject;
-
+/*
 import java.io.IOException;
 
 public class GameTest {
@@ -8,3 +8,4 @@ public class GameTest {
         game.run();
     }
 }
+*/
