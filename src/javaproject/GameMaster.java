@@ -160,6 +160,8 @@ class GameMaster {
 
             } else if (currentStage instanceof GhostStage) {
                 ghostMove(ghostDistance);
+                System.out.println("유령이 이동했습니다.");
+                System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
             } else if (currentStage instanceof EventStage) {
                 EventStage eventStage = (EventStage) currentStage;
                 boolean eventQuiz = quizManager.answerCheck(userLoc);
