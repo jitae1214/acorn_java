@@ -639,7 +639,7 @@ public class MainMenu extends JFrame {
     private void initializeSound() {
         try {
             // 절대 경로 사용
-            String absolutePath = "/Users/hyunki/Desktop/Test2/src/resources/324960__amliebsch__ghost-piano-1.wav";
+            String absolutePath = "res/324960__amliebsch__ghost-piano-1.wav";
             File soundFile = new File(absolutePath);
             
             if (!soundFile.exists()) {
