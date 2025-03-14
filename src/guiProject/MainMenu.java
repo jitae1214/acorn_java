@@ -3,10 +3,7 @@ package guiProject;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,6 +32,7 @@ public class MainMenu extends JFrame {
     private FloatControl volumeControl;
     private boolean isSoundPlaying = false;
 
+    private GameGUI gameGUI;
 
     public MainMenu() {
         initializeUI();
@@ -120,14 +118,12 @@ public class MainMenu extends JFrame {
         // 버튼 생성 및 스타일링
         JButton startButton = createHorrorButton("게임 시작");
         JButton settingsButton = createHorrorButton("설정");
-        JButton creditsButton = createHorrorButton("만든이");
 
         // 버튼 위치 설정
         int startY = screenSize.height / 2 - 100;
 
         startButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY, BUTTON_WIDTH, BUTTON_HEIGHT);
         settingsButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY + 80, BUTTON_WIDTH, BUTTON_HEIGHT);
-        creditsButton.setBounds(screenSize.width/2 - BUTTON_WIDTH/2, startY + 160, BUTTON_WIDTH, BUTTON_HEIGHT);
 
         // 버튼 이벤트 처리
         startButton.addActionListener(e -> {
@@ -144,19 +140,8 @@ public class MainMenu extends JFrame {
                 "- 유령 속도: 빠름");
         });
 
-        creditsButton.addActionListener(e -> {
-            playSpookySound();
-            showCustomDialog("만든이",
-                "이 공포게임의 제작자들...\n\n" +
-                "게임 디자인: ???\n" +
-                "프로그래밍: ???\n" +
-                "사운드: ???\n\n" +
-                "버전: 1.0.0 (악몽 에디션)");
-        });
-
         mainPanel.add(startButton);
         mainPanel.add(settingsButton);
-        mainPanel.add(creditsButton);
 
         // 버전 정보 레이블 수정 - 더 선명한 텍스트
         JLabel versionLabel = new JLabel("ver. 1.0.0", SwingConstants.RIGHT);

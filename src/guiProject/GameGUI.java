@@ -104,6 +104,9 @@ public class GameGUI extends JFrame {
         statusPanel.add(statusLabel);
         statusPanel.add(buffLabel);
         statusPanel.add(locationLabel);
+
+        // 범례 패널 추가
+        JPanel legendPanel = createLegendPanel();
         
         // 주사위 버튼 설정
         diceButton = new JButton("주사위 굴리기");
@@ -122,6 +125,9 @@ public class GameGUI extends JFrame {
                 // 상태 패널 위치 (좌상단)
                 statusPanel.setBounds(20, 20, 200, 100);
                 
+                // 범례 패널 위치 (우측)
+                legendPanel.setBounds(size.width - 250, 20, 230, size.height - 100);
+                
                 // 주사위 버튼 위치 (우하단)
                 diceButton.setBounds(size.width - 170, size.height - 70, 150, 50);
                 
@@ -133,7 +139,65 @@ public class GameGUI extends JFrame {
         // 레이어드 패널에 컴포넌트 추가
         layeredPane.add(boardPanel, JLayeredPane.DEFAULT_LAYER);
         layeredPane.add(statusPanel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(legendPanel, JLayeredPane.PALETTE_LAYER);
         layeredPane.add(diceButton, JLayeredPane.PALETTE_LAYER);
+    }
+
+    // 범례 패널 생성 메서드
+    private JPanel createLegendPanel() {
+        JPanel legendPanel = new JPanel();
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
+        legendPanel.setBackground(new Color(20, 20, 30, 200));
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // 범례 제목
+        JLabel titleLabel = new JLabel("[ 칸 설명 ]");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        legendPanel.add(titleLabel);
+        legendPanel.add(Box.createVerticalStrut(15));
+
+        // 범례 항목 추가
+        addLegendItem(legendPanel, "S", new Color(0, 100, 0), "시작 칸");
+        addLegendItem(legendPanel, "G", new Color(0, 100, 0), "골인 칸");
+        addLegendItem(legendPanel, "?", new Color(0, 0, 150), "이벤트 칸 - 퀴즈를 풀어야 합니다");
+        addLegendItem(legendPanel, "☠", new Color(150, 0, 0), "유령 칸 - 유령이 이동합니다");
+        addLegendItem(legendPanel, "★", new Color(0, 150, 0), "버프 칸 - 이동 효과가 변경됩니다");
+        addLegendItem(legendPanel, "→", new Color(150, 0, 150), "앞으로 이동");
+        addLegendItem(legendPanel, "←", new Color(150, 0, 150), "뒤로 이동");
+        addLegendItem(legendPanel, "⇝", new Color(150, 0, 150), "유령 방향으로 이동");
+
+        return legendPanel;
+    }
+
+    // 범례 항목 추가 메서드
+    private void addLegendItem(JPanel panel, String symbol, Color symbolColor, String description) {
+        JPanel itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+        itemPanel.setBackground(new Color(0, 0, 0, 0));
+        itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // 심볼
+        JLabel symbolLabel = new JLabel(symbol);
+        symbolLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        symbolLabel.setForeground(symbolColor);
+        symbolLabel.setPreferredSize(new Dimension(40, 30));
+
+        // 설명
+        JLabel descLabel = new JLabel(description);
+        descLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        descLabel.setForeground(Color.WHITE);
+
+        itemPanel.add(symbolLabel);
+        itemPanel.add(Box.createHorizontalStrut(10));
+        itemPanel.add(descLabel);
+
+        panel.add(itemPanel);
+        panel.add(Box.createVerticalStrut(10));
     }
 
     /*
@@ -186,13 +250,16 @@ public class GameGUI extends JFrame {
             int numberY = y + metrics.getHeight();
             g2d.drawString(number, numberX, numberY);
 
-            // 플레이어 위치 표시 (캐릭터 형태로 변경)
-            if (i == game.getUserLoc()) {
-                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
-            }
+            // 칸 심볼 그리기
+            drawSquareSymbol(g2d, board.get(i), x, y);
 
-            // 유령 위치 표시 (귀여운 유령 형태로 변경)
-            if (i == game.getGhostLoc()) {
+            // 플레이어와 유령 위치 표시
+            if (i == game.getUserLoc() && i == game.getGhostLoc()) {
+                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+                drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+            } else if (i == game.getUserLoc()) {
+                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+            } else if (i == game.getGhostLoc()) {
                 drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             }
         }
@@ -576,6 +643,48 @@ public class GameGUI extends JFrame {
         });
         timer.setRepeats(false);
         timer.start();
+    }
+
+    // 각 칸의 심볼을 그리는 메서드
+    private void drawSquareSymbol(Graphics2D g2d, Stage stage, int x, int y) {
+        int symbolSize = SQUARE_SIZE / 3;
+        int symbolX = x + (SQUARE_SIZE - symbolSize) / 2;
+        int symbolY = y + SQUARE_SIZE / 2;
+        
+        g2d.setFont(new Font("맑은 고딕", Font.BOLD, symbolSize));
+        
+        if (stage instanceof EventStage) {
+            // 물음표 아이콘
+            g2d.setColor(new Color(0, 0, 150));
+            g2d.drawString("?", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof GhostStage) {
+            // 해골 아이콘
+            g2d.setColor(new Color(150, 0, 0));
+            g2d.drawString("☠", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof BuffStage) {
+            // 별 아이콘
+            g2d.setColor(new Color(0, 150, 0));
+            g2d.drawString("★", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof ForceMove) {
+            // 화살표 아이콘
+            ForceMove fm = (ForceMove) stage;
+            g2d.setColor(new Color(150, 0, 150));
+            if (fm.getForceStage() == GameMaster.GHOST_FORCE_MOVE) {
+                g2d.drawString("⇝", symbolX, symbolY + symbolSize/2); // 유령 방향
+            } else if (fm.getForceStage() > 0) {
+                g2d.drawString("→", symbolX, symbolY + symbolSize/2); // 앞으로
+            } else {
+                g2d.drawString("←", symbolX, symbolY + symbolSize/2); // 뒤로
+            }
+        } else if (stage instanceof NormalStage) {
+            if (x == 0) { // 시작 칸
+                g2d.setColor(new Color(0, 100, 0));
+                g2d.drawString("S", symbolX, symbolY + symbolSize/2);
+            } else if (x == BOARD_SIZE - 1) { // 골인 칸
+                g2d.setColor(new Color(0, 100, 0));
+                g2d.drawString("G", symbolX, symbolY + symbolSize/2);
+            }
+        }
     }
 
     /*

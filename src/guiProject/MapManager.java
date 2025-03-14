@@ -123,16 +123,16 @@ public class MapManager {
         board.add(new EventStage());      // 3: 이벤트
         board.add(new GhostStage());      // 4: 유령
         board.add(new EventStage());      // 5: 이벤트
-        board.add(new BuffStage("double"));       // 6: 아이템
+        board.add(new BuffStage("double"));// 6: 아이템
         board.add(new EventStage());      // 7: 이벤트
 
         // 8-14번 칸
         board.add(new NormalStage());      // 8: 일반칸
-        board.add(new ForceMove(-1));      // 9: 강제이동
+        board.add(new ForceMove(-1));// 9: 강제이동
         board.add(new GhostStage());      // 10: 유령
         board.add(new EventStage());      // 11: 이벤트
-        board.add(new BuffStage("half"));       // 12: 아이템
-        board.add(new ForceMove(2));      // 13: 강제이동
+        board.add(new BuffStage("half")); // 12: 아이템
+        board.add(new ForceMove(2));// 13: 강제이동
         board.add(new EventStage());      // 14: 이벤트
 
         // 15-21번 칸
