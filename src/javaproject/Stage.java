@@ -55,7 +55,7 @@ class BuffStage implements Stage{
 		this.buff = buff;
 	}
 	public BuffStage() {
-		
+		 this.buff = "normal";
 	}
 	
 
@@ -66,8 +66,9 @@ class BuffStage implements Stage{
 	
 	@Override
 	public void 도착(int stageNum) {
-		
-		System.out.println("현재 칸 : [B]-아이템");
+		    System.out.println("현재 위치 : " + stageNum + "칸");
+	        System.out.println("현재 칸 : [B]-아이템");
+	        System.out.println("버프 효과 획득: " + buff);
 	}
 }
 
