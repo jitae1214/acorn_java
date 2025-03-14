@@ -57,7 +57,6 @@ class BuffStage implements Stage{
 	public BuffStage() {
 		
 	}
-	
 
 	// getter 이동거리 변화 효과
 	public String getBuff() {
