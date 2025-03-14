@@ -31,38 +31,74 @@ public class MapManager {
 
 
     public MapManager() {
-        this.board = new ArrayList<>();
+        board = new ArrayList<>();
+        // 0번 칸은 시작 칸
+        board.add(new NormalStage());
+        // 1번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 2번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 3번 칸은 버프 칸
+        board.add(new BuffStage("uDouble"));
+        // 4번 칸은 강제 이동 칸
+        board.add(new ForceMove(5));
+        // 5번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 6번 칸은 버프 칸 (다음 주사위 값의 2배)
+        board.add(new BuffStage("uDouble"));
+        // 7번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 8번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 9번 칸은 강제 이동 칸
+        board.add(new ForceMove(-2));
+        // 10번 칸은 버프 칸
+        board.add(new BuffStage("gDouble"));
+        // 11번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 12번 칸은 버프 칸 (1+n/2)
+        board.add(new BuffStage("uHalfPlusOne"));
+        // 13번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 14번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 15번 칸은 강제 이동 칸
+        board.add(new ForceMove(3));
+        // 16번 칸은 버프 칸
+        board.add(new BuffStage("uDouble"));
+        // 17번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 18번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 19번 칸은 강제 이동 칸
+        board.add(new ForceMove(-1));
+        // 20번 칸은 버프 칸
+        board.add(new BuffStage("gDouble"));
+        // 21번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 22번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 23번 칸은 강제 이동 칸
+        board.add(new ForceMove(2));
+        // 24번 칸은 버프 칸
+        board.add(new BuffStage("uDouble"));
+        // 25번 칸은 이벤트 칸
+        board.add(new EventStage());
+        // 26번 칸은 유령 칸
+        board.add(new GhostStage());
+        // 27번 칸은 버프 칸 (유령 2배)
+        board.add(new BuffStage("gDouble"));
+        // 28번 칸은 강제 이동 칸
+        board.add(new ForceMove(GameMaster.GHOST_FORCE_MOVE));
+        // 29번 칸은 골인 칸
+        board.add(new NormalStage());
         this.currentMapStyle = "기본";
     }
 
     public ArrayList<Stage> selectAndLoadMap() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("\n=== 맵 선택 ===");
-        System.out.println("1. 기본 맵");
-        System.out.println("2. 원형 트랙");
-        System.out.println("3. 블록 퍼즐");
-        System.out.print("맵을 선택하세요 (1-3): ");
-        
-        int choice = scanner.nextInt();
-        
-        switch(choice) {
-            case 1:
-                initializeDefaultBoard();
-                currentMapStyle = "기본";
-                break;
-            case 2:
-                loadMapFromFile("circular_track.txt");
-                currentMapStyle = "원형 트랙";
-                break;
-            case 3:
-                loadMapFromFile("block_puzzle.txt");
-                currentMapStyle = "블록 퍼즐";
-                break;
-            default:
-                System.out.println("잘못된 선택입니다. 기본 맵을 로드합니다.");
-                initializeDefaultBoard();
-                currentMapStyle = "기본";
-        }
+        // 기본 맵으로 초기화
+        initializeDefaultBoard();
+        currentMapStyle = "기본";
         return board;
     }
     public void loadMapFromFile(String filename) {
@@ -123,7 +159,7 @@ public class MapManager {
                 board.add(new GhostStage());
                 break;
             case "B": //  B: 버프 칸
-                board.add(new BuffStage());
+                board.add(new BuffStage("uDouble"));
                 break;
             case "F+": //  F+: 앞으로 이동
                 board.add(new ForceMove(2));
@@ -147,16 +183,16 @@ public class MapManager {
         board.add(new EventStage());      // 3: 이벤트
         board.add(new GhostStage());      // 4: 유령
         board.add(new EventStage());      // 5: 이벤트
-        board.add(new BuffStage("double"));       // 6: 아이템
+        board.add(new BuffStage("uDouble"));// 6: 아이템
         board.add(new EventStage());      // 7: 이벤트
 
         // 8-14번 칸
         board.add(new NormalStage());      // 8: 일반칸
-        board.add(new ForceMove(-1));      // 9: 강제이동
+        board.add(new ForceMove(-1));// 9: 강제이동
         board.add(new GhostStage());      // 10: 유령
         board.add(new EventStage());      // 11: 이벤트
-        board.add(new BuffStage("half"));       // 12: 아이템
-        board.add(new ForceMove(2));      // 13: 강제이동
+        board.add(new BuffStage("uHalfPlusOne")); // 12: 아이템
+        board.add(new ForceMove(2));// 13: 강제이동
         board.add(new EventStage());      // 14: 이벤트
 
         // 15-21번 칸
@@ -174,7 +210,7 @@ public class MapManager {
         board.add(new ForceMove(GHOST_FORCE_MOVE));   // 24: 강제이동
         board.add(new EventStage());      // 25: 이벤트
         board.add(new GhostStage());      // 26: 유령
-        board.add(new BuffStage("gDouble"));       // 27: 아이템
+        board.add(new BuffStage("gDouble"));// 27: 아이템
         board.add(new GhostStage());      // 28: 유령
         board.add(new EventStage());      // 29: 이벤트
         board.add(new NormalStage());      // 30: 골

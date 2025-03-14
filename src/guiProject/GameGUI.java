@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Random;
+import java.io.File;
+import java.awt.image.BufferedImage;
 
 /*
 주요 기능:
@@ -31,6 +33,15 @@ public class GameGUI extends JFrame {
     private static int SQUARE_SIZE = 60;
     private static final int BOARD_SIZE = 30;
     private Random random = new Random();
+    
+    // 주사위 관련 필드 추가
+    private JLabel diceLabel;
+    private Timer diceAnimationTimer;
+    private int diceAnimationCount = 0;
+    private int finalDiceResult = 0;
+    private ImageIcon[] diceImages;
+    private static final int DICE_SIZE = 100;
+    private static final int ANIMATION_FRAMES = 10;
 
     /*
      * 생성자: GameMaster 인스턴스 생성 및 UI 초기화
@@ -38,6 +49,62 @@ public class GameGUI extends JFrame {
      */
     public GameGUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        loadDiceImages();
+    }
+
+    private void loadDiceImages() {
+        diceImages = new ImageIcon[6];
+        for (int i = 1; i <= 6; i++) {
+            try {
+                String imagePath = "/Users/hyunki/Desktop/Test2/src/resources/dice" + i + ".png";
+                File file = new File(imagePath);
+                if (file.exists()) {
+                    ImageIcon originalIcon = new ImageIcon(imagePath);
+                    Image image = originalIcon.getImage().getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH);
+                    diceImages[i-1] = new ImageIcon(image);
+                } else {
+                    System.err.println("주사위 이미지 파일을 찾을 수 없습니다: " + imagePath);
+                    // 이미지가 없을 경우 기본 주사위 이미지 생성
+                    BufferedImage defaultDice = createDefaultDiceImage(i);
+                    diceImages[i-1] = new ImageIcon(defaultDice.getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH));
+                }
+            } catch (Exception e) {
+                System.err.println("주사위 이미지 로드 실패: " + e.getMessage());
+                // 예외 발생 시 기본 주사위 이미지 생성
+                BufferedImage defaultDice = createDefaultDiceImage(i);
+                diceImages[i-1] = new ImageIcon(defaultDice.getScaledInstance(DICE_SIZE, DICE_SIZE, Image.SCALE_SMOOTH));
+            }
+        }
+    }
+
+    // 기본 주사위 이미지를 생성하는 메서드 추가
+    private BufferedImage createDefaultDiceImage(int number) {
+        BufferedImage image = new BufferedImage(DICE_SIZE, DICE_SIZE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+        
+        // 안티앨리어싱 설정
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // 주사위 배경
+        g2d.setColor(Color.WHITE);
+        g2d.fillRoundRect(0, 0, DICE_SIZE-1, DICE_SIZE-1, 10, 10);
+        
+        // 테두리
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawRoundRect(0, 0, DICE_SIZE-1, DICE_SIZE-1, 10, 10);
+        
+        // 숫자 그리기
+        g2d.setFont(new Font("맑은 고딕", Font.BOLD, DICE_SIZE/2));
+        FontMetrics fm = g2d.getFontMetrics();
+        String num = String.valueOf(number);
+        int textX = (DICE_SIZE - fm.stringWidth(num)) / 2;
+        int textY = (DICE_SIZE - fm.getHeight()) / 2 + fm.getAscent();
+        
+        g2d.drawString(num, textX, textY);
+        
+        g2d.dispose();
+        return image;
     }
 
     public void setGameMaster(GameMaster gameMaster) {
@@ -53,13 +120,11 @@ public class GameGUI extends JFrame {
      */
     private void initializeUI() {
         setTitle("유령 피하기 보드게임");
-        setLayout(new BorderLayout());
-
-        // 전체 화면 설정
-        setExtendedState(JFrame.MAXIMIZED_BOTH); //창 전체 화면
-        setUndecorated(true); // 창 테두리 제거
-
-        // ESC 키로 전체 화면 종료 가능하게 설정
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
+        
+        // ESC 키로 종료 기능 추가
         KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false);
         Action escapeAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -70,26 +135,11 @@ public class GameGUI extends JFrame {
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
         getRootPane().getActionMap().put("ESCAPE", escapeAction);
 
-        // 상태 패널 (상단) - 폰트 크기 증가
-        JPanel statusPanel = new JPanel(new GridLayout(3, 1));
-        statusPanel.setBackground(new Color(240, 240, 240));
-        statusPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        Font largeFont = new Font("맑은 고딕", Font.BOLD, 24);
-        statusLabel = new JLabel("게임 시작!", SwingConstants.CENTER);
-        buffLabel = new JLabel("현재 버프: normal", SwingConstants.CENTER);
-        locationLabel = new JLabel("현재 위치: 1번 칸", SwingConstants.CENTER);
+        // 메인 패널 생성
+        JLayeredPane layeredPane = new JLayeredPane();
+        setContentPane(layeredPane);
         
-        statusLabel.setFont(largeFont);
-        buffLabel.setFont(largeFont);
-        locationLabel.setFont(largeFont);
-
-        statusPanel.add(statusLabel);
-        statusPanel.add(buffLabel);
-        statusPanel.add(locationLabel);
-        add(statusPanel, BorderLayout.NORTH);
-
-        // 보드 패널 (중앙) - 크기 조정
+        // 보드 패널 설정
         boardPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -97,29 +147,209 @@ public class GameGUI extends JFrame {
                 drawBoard(g);
             }
         };
-        boardPanel.setBackground(Color.WHITE);
-        // 화면 크기에 맞게 보드 크기 조정
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int boardWidth = (int)(screenSize.width * 0.8);
-        int boardHeight = (int)(screenSize.height * 0.6);
-        boardPanel.setPreferredSize(new Dimension(boardWidth, boardHeight));
-        add(new JScrollPane(boardPanel), BorderLayout.CENTER);
-
-        // 주사위 버튼 패널 (하단)
-        JPanel controlPanel = new JPanel();
-        controlPanel.setBackground(new Color(240, 240, 240));
-        controlPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        boardPanel.setBackground(new Color(20, 20, 30));
+        boardPanel.setOpaque(true);
         
-        diceButton = new JButton("주사위 굴리기");
-        diceButton.setFont(largeFont);
-        diceButton.setPreferredSize(new Dimension(200, 60));
+        // 상태 정보 레이블 설정
+        statusLabel = new JLabel("게임 시작!", SwingConstants.LEFT);
+        buffLabel = new JLabel("현재 버프: normal", SwingConstants.LEFT);
+        locationLabel = new JLabel("현재 위치: 1번 칸", SwingConstants.LEFT);
+        
+        Font statusFont = new Font("맑은 고딕", Font.BOLD, 16);
+        statusLabel.setFont(statusFont);
+        buffLabel.setFont(statusFont);
+        locationLabel.setFont(statusFont);
+        
+        statusLabel.setForeground(Color.WHITE);
+        buffLabel.setForeground(Color.WHITE);
+        locationLabel.setForeground(Color.WHITE);
+
+        // 상태 패널 설정
+        JPanel statusPanel = new JPanel();
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.Y_AXIS));
+        statusPanel.setOpaque(false);
+        statusPanel.add(statusLabel);
+        statusPanel.add(buffLabel);
+        statusPanel.add(locationLabel);
+
+        // 범례 패널 추가
+        JPanel legendPanel = createLegendPanel();
+        
+        // 주사위 버튼 설정
+        diceButton = new JButton("주사위 굴리기") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 버튼 배경
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(60, 0, 0),
+                    0, getHeight(), new Color(120, 0, 0)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
+
+                // 테두리
+                g2d.setColor(new Color(200, 0, 0));
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRoundRect(1, 1, getWidth()-2, getHeight()-2, 15, 15);
+
+                // 텍스트
+                g2d.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+                FontMetrics fm = g2d.getFontMetrics();
+                int textX = (getWidth() - fm.stringWidth(getText())) / 2;
+                int textY = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+
+                // 텍스트 그림자
+                g2d.setColor(new Color(0, 0, 0, 120));
+                g2d.drawString(getText(), textX+1, textY+1);
+
+                // 텍스트
+                g2d.setColor(Color.WHITE);
+                g2d.drawString(getText(), textX, textY);
+            }
+        };
+        diceButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+        diceButton.setForeground(Color.WHITE);
+        diceButton.setPreferredSize(new Dimension(150, 50));
+        diceButton.setContentAreaFilled(false);
+        diceButton.setBorderPainted(false);
+        diceButton.setFocusPainted(false);
         diceButton.addActionListener(e -> rollDice());
-        
-        controlPanel.add(diceButton);
-        add(controlPanel, BorderLayout.SOUTH);
 
-        // 전체 화면 크기에 맞게 SQUARE_SIZE 조정
-        SQUARE_SIZE = Math.min(boardWidth / 11, boardHeight / 5);
+        // 주사위 레이블 설정
+        diceLabel = new JLabel();
+        diceLabel.setPreferredSize(new Dimension(DICE_SIZE, DICE_SIZE));
+        diceLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        diceLabel.setOpaque(true);
+        diceLabel.setBackground(new Color(20, 20, 30));
+        if (diceImages[0] != null) {
+            diceLabel.setIcon(diceImages[0]);
+        }
+
+        // 주사위 패널 설정
+        JPanel dicePanel = new JPanel();
+        dicePanel.setLayout(new BoxLayout(dicePanel, BoxLayout.Y_AXIS));
+        dicePanel.setBackground(new Color(20, 20, 30));
+        dicePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 0, 0), 2),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // 주사위 이미지를 가운데 정렬
+        JPanel diceImagePanel = new JPanel();
+        diceImagePanel.setBackground(new Color(20, 20, 30));
+        diceImagePanel.add(diceLabel);
+        
+        // 주사위 버튼을 가운데 정렬
+        JPanel diceButtonPanel = new JPanel();
+        diceButtonPanel.setBackground(new Color(20, 20, 30));
+        diceButtonPanel.add(diceButton);
+
+        dicePanel.add(diceImagePanel);
+        dicePanel.add(Box.createVerticalStrut(10));
+        dicePanel.add(diceButtonPanel);
+
+        // 주사위 패널 위치 설정
+        Dimension size = getContentPane().getSize();
+        dicePanel.setBounds(20, size.height - 250, DICE_SIZE + 40, DICE_SIZE + 100);
+
+        // 각 화면에 필요한 ui의 크기와 위치 설정
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                Dimension size = getContentPane().getSize();
+                
+                // 보드 패널을 전체 화면으로 설정
+                boardPanel.setBounds(0, 0, size.width, size.height);
+                
+                // 상태 패널 위치 (좌상단)
+                statusPanel.setBounds(20, 20, 200, 100);
+                
+                // 범례 패널 위치 (우측)
+                legendPanel.setBounds(size.width - 250, 20, 230, size.height - 100);
+                
+                // 주사위 패널 위치 (좌하단)
+                dicePanel.setBounds(20, size.height - 250, DICE_SIZE + 40, DICE_SIZE + 100);
+                
+                // SQUARE_SIZE 조정
+                SQUARE_SIZE = Math.min(size.width / 15, size.height / 7);
+            }
+        });
+
+        // 레이어드 패널에 컴포넌트 추가
+        layeredPane.add(boardPanel, JLayeredPane.DEFAULT_LAYER);
+        layeredPane.add(statusPanel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(legendPanel, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(dicePanel, JLayeredPane.PALETTE_LAYER);
+
+        // 주사위 버튼에 마우스 이벤트 추가
+        diceButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                diceButton.setFont(new Font("맑은 고딕", Font.BOLD, 22));
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                diceButton.setFont(new Font("맑은 고딕", Font.BOLD, 20));
+            }
+        });
+    }
+
+    // 범례 패널 생성 메서드
+    private JPanel createLegendPanel() {
+        JPanel legendPanel = new JPanel();
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
+        legendPanel.setBackground(new Color(20, 20, 30, 200));
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 255, 255, 100), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        // 범례 제목
+        JLabel titleLabel = new JLabel("[ 칸 설명 ]");
+        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        legendPanel.add(titleLabel);
+        legendPanel.add(Box.createVerticalStrut(15));
+
+        // 범례 항목 추가
+        addLegendItem(legendPanel, "S", new Color(0, 100, 0), "시작 칸");
+        addLegendItem(legendPanel, "G", new Color(0, 100, 0), "골인 칸");
+        addLegendItem(legendPanel, "?", new Color(0, 0, 150), "이벤트 칸 - 퀴즈를 풀어야 합니다");
+        addLegendItem(legendPanel, "☠", new Color(150, 0, 0), "유령 칸 - 유령이 이동합니다");
+        addLegendItem(legendPanel, "★", new Color(0, 150, 0), "버프 칸 - 이동 효과가 변경됩니다");
+        addLegendItem(legendPanel, "→", new Color(150, 0, 150), "앞으로 이동");
+        addLegendItem(legendPanel, "←", new Color(150, 0, 150), "뒤로 이동");
+        addLegendItem(legendPanel, "⇝", new Color(150, 0, 150), "유령 방향으로 이동");
+
+        return legendPanel;
+    }
+
+    // 범례 항목 추가 메서드
+    private void addLegendItem(JPanel panel, String symbol, Color symbolColor, String description) {
+        JPanel itemPanel = new JPanel();
+        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
+        itemPanel.setBackground(new Color(0, 0, 0, 0));
+        itemPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // 심볼
+        JLabel symbolLabel = new JLabel(symbol);
+        symbolLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        symbolLabel.setForeground(symbolColor);
+        symbolLabel.setPreferredSize(new Dimension(40, 30));
+
+        // 설명
+        JLabel descLabel = new JLabel(description);
+        descLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        descLabel.setForeground(Color.WHITE);
+
+        itemPanel.add(symbolLabel);
+        itemPanel.add(Box.createHorizontalStrut(10));
+        itemPanel.add(descLabel);
+
+        panel.add(itemPanel);
+        panel.add(Box.createVerticalStrut(10));
     }
 
     /*
@@ -172,13 +402,16 @@ public class GameGUI extends JFrame {
             int numberY = y + metrics.getHeight();
             g2d.drawString(number, numberX, numberY);
 
-            // 플레이어 위치 표시 (캐릭터 형태로 변경)
-            if (i == game.getUserLoc()) {
-                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
-            }
+            // 칸 심볼 그리기
+            drawSquareSymbol(g2d, board.get(i), x, y, i);
 
-            // 유령 위치 표시 (귀여운 유령 형태로 변경)
-            if (i == game.getGhostLoc()) {
+            // 플레이어와 유령 위치 표시
+            if (i == game.getUserLoc() && i == game.getGhostLoc()) {
+                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+                drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+            } else if (i == game.getUserLoc()) {
+                drawPlayer(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
+            } else if (i == game.getGhostLoc()) {
                 drawGhost(g2d, x + SQUARE_SIZE/4, y + SQUARE_SIZE/4, SQUARE_SIZE/2);
             }
         }
@@ -322,23 +555,33 @@ public class GameGUI extends JFrame {
      */
     private void rollDice() {
         diceButton.setEnabled(false);
-        
-        // 주사위 굴리기 효과를 위한 타이머
-        Timer timer = new Timer(50, new ActionListener() {
-            int count = 0;
-            int finalResult = game.diceRoll();
-            
+        finalDiceResult = game.diceRoll();
+        diceAnimationCount = 0;
+
+        // 주사위 애니메이션 타이머 설정
+        if (diceAnimationTimer != null) {
+            diceAnimationTimer.stop();
+        }
+
+        diceAnimationTimer = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (count < 10) {
-                    statusLabel.setText("주사위 굴리는 중... " + (random.nextInt(6) + 1));
-                    count++;
+                if (diceAnimationCount < ANIMATION_FRAMES) {
+                    // 랜덤한 주사위 이미지 표시
+                    int randomDice = random.nextInt(6);
+                    if (diceImages[randomDice] != null) {
+                        diceLabel.setIcon(diceImages[randomDice]);
+                    }
+                    diceAnimationCount++;
                 } else {
-                    ((Timer)e.getSource()).stop();
-                    statusLabel.setText("주사위 결과: " + finalResult);
+                    // 최종 주사위 결과 표시
+                    if (diceImages[finalDiceResult - 1] != null) {
+                        diceLabel.setIcon(diceImages[finalDiceResult - 1]);
+                    }
+                    diceAnimationTimer.stop();
                     
                     // 플레이어 이동
-                    game.userMove(finalResult);
+                    game.userMove(finalDiceResult);
                     
                     // UI 업데이트
                     updateUI();
@@ -357,17 +600,253 @@ public class GameGUI extends JFrame {
             }
         });
         
-        timer.start();
+        diceAnimationTimer.start();
     }
 
     /*
      * UI 업데이트 메소드
      * 콘솔의 전체 화면 갱신을 부분 업데이트로 변경
      */
-    private void updateUI() {
+    public void updateUI() {
         buffLabel.setText("현재 버프: " + game.getBuff());
         locationLabel.setText("현재 위치: " + (game.getUserLoc() + 1) + "번 칸");
         boardPanel.repaint();
+    }
+
+    // 퀴즈 다이얼로그 표시 메소드
+    public void showQuizDialog(Quiz quiz) {
+        JDialog dialog = new JDialog(this, "퀴즈!", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.setUndecorated(true);
+
+        // 메인 패널
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(new Color(20, 20, 30));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // 퀴즈 내용
+        JLabel questionLabel = new JLabel("<html><body style='width: 400px'>" + quiz.getContent() + "</body></html>");
+        questionLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
+        questionLabel.setForeground(Color.WHITE);
+        questionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(questionLabel);
+        mainPanel.add(Box.createVerticalStrut(20));
+
+        // 답변 입력 컴포넌트
+        JComponent answerComponent;
+        String example = quiz.getExample();
+
+        if (example.contains("/")) {
+            // 객관식 문제
+            answerComponent = new JPanel();
+            ((JPanel)answerComponent).setLayout(new BoxLayout((JPanel)answerComponent, BoxLayout.Y_AXIS));
+            answerComponent.setBackground(new Color(20, 20, 30));
+            
+            ButtonGroup group = new ButtonGroup();
+            ArrayList<JRadioButton> radioButtons = new ArrayList<>();
+
+            String[] options = example.split("/");
+            for (String option : options) {
+                String trimmedOption = option.trim();
+                if (!trimmedOption.isEmpty()) {
+                    JRadioButton radioButton = new JRadioButton(trimmedOption);
+                    radioButton.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+                    radioButton.setForeground(Color.WHITE);
+                    radioButton.setBackground(new Color(20, 20, 30));
+                    
+                    // 라디오 버튼 패널 생성
+                    JPanel radioPanel = new JPanel(new BorderLayout());
+                    radioPanel.setBackground(new Color(20, 20, 30));
+                    radioPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                    radioPanel.add(radioButton, BorderLayout.WEST);
+                    
+                    group.add(radioButton);
+                    radioButtons.add(radioButton);
+                    answerComponent.add(radioPanel);
+                    answerComponent.add(Box.createVerticalStrut(10));
+                }
+            }
+
+            // 첫 번째 라디오 버튼 선택
+            if (!radioButtons.isEmpty()) {
+                radioButtons.get(0).setSelected(true);
+            }
+        } else {
+            // 서술형 문제
+            JPanel inputPanel = new JPanel();
+            inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+            inputPanel.setBackground(new Color(20, 20, 30));
+
+            // 답안 입력 필드
+            JTextField textField = new JTextField();
+            textField.setFont(new Font("맑은 고딕", Font.PLAIN, 16));
+            textField.setPreferredSize(new Dimension(300, 30));
+            textField.setMaximumSize(new Dimension(300, 30));
+            
+            // 힌트 레이블 (있는 경우)
+            if (!example.isEmpty()) {
+                JLabel hintLabel = new JLabel("힌트: " + example);
+                hintLabel.setFont(new Font("맑은 고딕", Font.ITALIC, 14));
+                hintLabel.setForeground(new Color(200, 200, 200));
+                hintLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                inputPanel.add(hintLabel);
+                inputPanel.add(Box.createVerticalStrut(10));
+            }
+            
+            inputPanel.add(textField);
+            answerComponent = inputPanel;
+        }
+
+        mainPanel.add(answerComponent);
+        mainPanel.add(Box.createVerticalStrut(20));
+
+        // 확인 버튼
+        JButton submitButton = new JButton("정답 제출");
+        submitButton.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        submitButton.addActionListener(e -> {
+            String userAnswer;
+            if (answerComponent instanceof JPanel && ((JPanel)answerComponent).getComponent(0) instanceof JPanel) {
+                // 객관식 답변 처리
+                for (Component c : ((JPanel)answerComponent).getComponents()) {
+                    if (c instanceof JPanel) {
+                        JRadioButton rb = (JRadioButton)((JPanel)c).getComponent(0);
+                        if (rb.isSelected()) {
+                            userAnswer = rb.getText();
+                            boolean correct = quiz.isCorrect(userAnswer);
+                            dialog.dispose();
+                            
+                            if (correct) {
+                                showResultDialog("정답입니다!", true);
+                            } else {
+                                showResultDialog("오답입니다...", false);
+                                game.ghostMove(3);
+                            }
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // 서술형 답변 처리
+                JTextField textField = (JTextField)((JPanel)answerComponent).getComponent(
+                    ((JPanel)answerComponent).getComponentCount() - 1);
+                userAnswer = textField.getText().trim();
+                boolean correct = quiz.isCorrect(userAnswer);
+                dialog.dispose();
+                
+                if (correct) {
+                    showResultDialog("정답입니다!", true);
+                } else {
+                    showResultDialog("오답입니다...", false);
+                    game.ghostMove(3);
+                }
+            }
+        });
+
+        mainPanel.add(submitButton);
+        dialog.add(mainPanel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // 퀴즈 결과 다이얼로그
+    private void showResultDialog(String message, boolean isCorrect) {
+        JDialog resultDialog = new JDialog(this, "", true);
+        resultDialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(isCorrect ? new Color(0, 100, 0) : new Color(100, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        JLabel label = new JLabel(message);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        label.setForeground(Color.WHITE);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(label, BorderLayout.CENTER);
+        
+        resultDialog.add(panel);
+        resultDialog.pack();
+        resultDialog.setLocationRelativeTo(this);
+        
+        // 3초 후 자동으로 닫기
+        Timer timer = new Timer(3000, e -> resultDialog.dispose());
+        timer.setRepeats(false);
+        timer.start();
+        
+        resultDialog.setVisible(true);
+    }
+
+    // 게임 오버 다이얼로그 표시
+    public void showGameOver(String message) {
+        JDialog dialog = new JDialog(this, "게임 오버", true);
+        dialog.setUndecorated(true);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(new Color(100, 0, 0));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
+        
+        JLabel label = new JLabel(message);
+        label.setFont(new Font("맑은 고딕", Font.BOLD, 24));
+        label.setForeground(Color.WHITE);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        panel.add(label, BorderLayout.CENTER);
+        
+        dialog.add(panel);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+        
+        // 3초 후 게임 종료
+        Timer timer = new Timer(3000, e -> {
+            dialog.dispose();
+            System.exit(0);
+        });
+        timer.setRepeats(false);
+        timer.start();
+    }
+
+    // 각 칸의 심볼을 그리는 메서드
+    private void drawSquareSymbol(Graphics2D g2d, Stage stage, int x, int y, int index) {
+        int symbolSize = SQUARE_SIZE / 3;
+        int symbolX = x + (SQUARE_SIZE - symbolSize) / 2;
+        int symbolY = y + SQUARE_SIZE / 2;
+        
+        g2d.setFont(new Font("맑은 고딕", Font.BOLD, symbolSize));
+        
+        if (stage instanceof EventStage) {
+            // 물음표 아이콘
+            g2d.setColor(new Color(0, 0, 150));
+            g2d.drawString("?", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof GhostStage) {
+            // 해골 아이콘
+            g2d.setColor(new Color(150, 0, 0));
+            g2d.drawString("☠", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof BuffStage) {
+            // 별 아이콘
+            g2d.setColor(new Color(0, 150, 0));
+            g2d.drawString("★", symbolX, symbolY + symbolSize/2);
+        } else if (stage instanceof ForceMove) {
+            // 화살표 아이콘
+            ForceMove fm = (ForceMove) stage;
+            g2d.setColor(new Color(150, 0, 150));
+            if (fm.getForceStage() == GameMaster.GHOST_FORCE_MOVE) {
+                g2d.drawString("⇝", symbolX, symbolY + symbolSize/2); // 유령 방향
+            } else if (fm.getForceStage() > 0) {
+                g2d.drawString("→", symbolX, symbolY + symbolSize/2); // 앞으로
+            } else {
+                g2d.drawString("←", symbolX, symbolY + symbolSize/2); // 뒤로
+            }
+        } else if (stage instanceof NormalStage) {
+            if (index == 0) { // 시작 칸
+                g2d.setColor(new Color(0, 100, 0));
+                g2d.drawString("S", symbolX, symbolY + symbolSize/2);
+            } else if (index == BOARD_SIZE - 1) { // 골인 칸
+                g2d.setColor(new Color(0, 100, 0));
+                g2d.drawString("G", symbolX, symbolY + symbolSize/2);
+            }
+        }
     }
 
     /*

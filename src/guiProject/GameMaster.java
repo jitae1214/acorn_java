@@ -26,6 +26,7 @@ class GameMaster {
 	private int ghostDistance; // 유령 이동 거리
 	private String currentMapStyle; // 현재 맵 스타일
 	private MapManager mapManager; // 맵 관리자
+	private GameGUI gameGUI;  // GameGUI 참조 추가
 	static final int GHOST_FORCE_MOVE = -9999;
 	private int previousLoc; // 이동 전 위치를 저장하기 위한 변수
 
@@ -44,6 +45,7 @@ class GameMaster {
 
 	// 주사위 던지는 메서드
 	public int diceRoll() {
+<<<<<<< HEAD
 		int dice = random.nextInt(6) + 1;
 	    int buffedDice = applyBuff(dice);
 	    
@@ -53,6 +55,9 @@ class GameMaster {
 	    }
 	    
 	    return buffedDice;
+=======
+		return random.nextInt(6) + 1;
+>>>>>>> YHK
 	}
 
 //    public int diceRoll() {
@@ -63,7 +68,13 @@ class GameMaster {
 
 	// 유저 움직이는 메서드
 	public int userMove(int distance) {
+<<<<<<< HEAD
 		previousLoc = userLoc; // 현재 위치 저장
+=======
+		// 현재 위치의 스테이지 효과 적용 (버프 설정)
+		nowLocation();
+
+>>>>>>> YHK
 		// 버프 효과 적용
 		int actualDistance = applyBuff(distance);
 
@@ -79,8 +90,8 @@ class GameMaster {
 			userLoc = newLocation;
 		}
 
-		// 현재 위치의 스테이지 효과 적용
-		nowLocation();
+		// 이동 후 버프 초기화
+		buff = "normal";
 
 		return userLoc;
 	}
@@ -106,26 +117,25 @@ class GameMaster {
 			return distance;
 		}
 
-		switch (buff.toLowerCase()) {
-		case "double":
-			return distance * 2;
-		case "half":
-			return distance / 2;
-		case "plus1":
-			return distance + 1;
-		case "minus1":
-			return distance - 1;
-		default:
-			return distance;
+		switch (buff) {
+			case "uDouble":
+				return distance * 2;
+			case "uHalfPlusOne":
+				return 1 + (distance / 2);
+			case "gDouble":
+				// 유령 버프는 유저 이동에 영향을 주지 않음
+				return distance;
+			default:
+				return distance;
 		}
 	}
 
 	private int applyGhostBuff(int ghostDistance) {
-		switch (buff.toLowerCase()) {
-		case "gdouble":
-			return ghostDistance * 2;
-		default:
-			return ghostDistance;
+		switch (buff) {
+			case "gDouble":
+				return ghostDistance * 2;
+			default:
+				return ghostDistance;
 		}
 	}
 
@@ -133,38 +143,37 @@ class GameMaster {
 	public void nowLocation() {
 		if (userLoc >= 0 && userLoc < board.size()) {
 			Stage currentStage = board.get(userLoc);
-			currentStage.도착(userLoc);
 
 			// 각 스테이지 타입별 특수 효과 처리
 			if (currentStage instanceof BuffStage) {
 				buff = ((BuffStage) currentStage).getBuff();
-				System.out.println("버프 효과 획득: " + buff);
+				if (gameGUI != null) {
+					gameGUI.updateUI();
+				}
 			} else if (currentStage instanceof ForceMove) {
 				int forceMove = ((ForceMove) currentStage).getForceStage();
 				if (forceMove == GHOST_FORCE_MOVE) {
 					forceMove = -(userLoc - ghostLoc) + 1;
-					System.out.println("유령 앞으로 " + forceMove + "칸 강제 이동!");
-				} else {
-					System.out.println(forceMove + "칸 강제 이동!");
 				}
 				userMove(forceMove);
-
 			} else if (currentStage instanceof GhostStage) {
 				ghostMove(ghostDistance);
-				System.out.println("유령이 이동했습니다.");
-				System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
 				if (ghostLoc == getUserLoc()) {
-					System.out.println("유령에게 잡혔습니다.");
-					System.out.println("게임이 종료되었습니다.");
-					System.exit(0);
+					if (gameGUI != null) {
+						gameGUI.showGameOver("유령에게 잡혔습니다!");
+					}
 				}
 			} else if (currentStage instanceof EventStage) {
 				boolean eventQuiz = ((EventStage) currentStage).solveQuiz(userLoc);
+<<<<<<< HEAD
 				if (eventQuiz) {
 					System.out.println("\n정답입니다!!!\n");
 				} else {
 					System.out.println("\n오답입니다...\n");
 					userLoc = previousLoc; // 오답 시 이전 위치로 돌아감
+=======
+				if (!eventQuiz) {
+>>>>>>> YHK
 					ghostMove(ghostDistance);
 					System.out.println("유령이 이동했습니다.");
 					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
@@ -174,8 +183,10 @@ class GameMaster {
 						System.exit(0);
 					}
 				}
-			} else if (currentStage instanceof NormalStage) {
-				System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
+			}
+			
+			if (gameGUI != null) {
+				gameGUI.updateUI();
 			}
 		}
 	}
@@ -408,6 +419,15 @@ class GameMaster {
 		this.currentMapStyle = style;
 		if (mapManager != null) {
 			mapManager.setCurrentMapStyle(style);
+		}
+	}
+
+	public void setGameGUI(GameGUI gui) {
+		this.gameGUI = gui;
+		for (Stage stage : board) {
+			if (stage instanceof EventStage) {
+				((EventStage) stage).setGameGUI(gui);
+			}
 		}
 	}
 }

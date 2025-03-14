@@ -3,10 +3,7 @@ package guiProject;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -17,6 +14,7 @@ import java.util.Arrays;
 - 유령 애니메이션 효과
 - UI/UX 디자인
 */
+
 public class MainMenu extends JFrame {
     private static final int BUTTON_WIDTH = 300;
     private static final int BUTTON_HEIGHT = 60;
@@ -35,6 +33,7 @@ public class MainMenu extends JFrame {
     private FloatControl volumeControl;
     private boolean isSoundPlaying = false;
 
+    private GameGUI gameGUI;
 
     public MainMenu() {
         initializeUI();
@@ -59,6 +58,7 @@ public class MainMenu extends JFrame {
                 System.exit(0);
             }
         };
+
         // WHEN_IN_FOCUSED_WINDOW: 창이 활성화되어 있을 때 키 입력을 감지
         // 키 입력과 동작을 "ESCAPE"라는 이름으로 매핑
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "ESCAPE");
@@ -119,7 +119,7 @@ public class MainMenu extends JFrame {
         // 버튼 생성 및 스타일링
         JButton startButton = createHorrorButton("게임 시작");
         JButton settingsButton = createHorrorButton("설정");
-        JButton creditsButton = createHorrorButton("만든이");
+        JButton creditsButton = createHorrorButton("제작자들");
 
         // 버튼 위치 설정
         int startY = screenSize.height / 2 - 100;
@@ -145,12 +145,7 @@ public class MainMenu extends JFrame {
 
         creditsButton.addActionListener(e -> {
             playSpookySound();
-            showCustomDialog("만든이",
-                "이 공포게임의 제작자들...\n\n" +
-                "게임 디자인: ???\n" +
-                "프로그래밍: ???\n" +
-                "사운드: ???\n\n" +
-                "버전: 1.0.0 (악몽 에디션)");
+            showCreditsAnimation();
         });
 
         mainPanel.add(startButton);
@@ -158,7 +153,7 @@ public class MainMenu extends JFrame {
         mainPanel.add(creditsButton);
 
         // 버전 정보 레이블 수정 - 더 선명한 텍스트
-        JLabel versionLabel = new JLabel("v1.0.0 - 악몽 에디션", SwingConstants.RIGHT);
+        JLabel versionLabel = new JLabel("ver. 1.0.0", SwingConstants.RIGHT);
         versionLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));  // 글자 크기 증가
         versionLabel.setForeground(new Color(255, 50, 50)); //선명한 빨간색 효과
         versionLabel.setBounds(screenSize.width - 200, screenSize.height - 40, 180, 20);
@@ -439,8 +434,8 @@ public class MainMenu extends JFrame {
         // 맵 선택 버튼들
         String[][] maps = {
             {"기본 맵", "기본적인 보드 게임 맵입니다."},
-            {"원형 트랙", "원형으로 이어지는 순환형 맵입니다."},
-            {"블록 퍼즐", "여러 갈래 길이 있는 복잡한 맵입니다."}
+            {"원형 트랙", "미완성ㅠㅠ"},
+            {"블록 퍼즐", "미완성ㅠㅠ"}
         };
 
         for (String[] map : maps) {
@@ -503,35 +498,40 @@ public class MainMenu extends JFrame {
                 dialog.dispose();
                 dispose();
                 SwingUtilities.invokeLater(() -> {
-                    GameGUI game = new GameGUI();
-                    GameMaster gameMaster = null;
                     try {
-                        gameMaster = new GameMaster();
+                        GameGUI game = new GameGUI();
+                        GameMaster gameMaster = new GameMaster();
+                        
+                        // 선택된 맵 스타일 설정
+                        switch(mapIndex) {
+                            case 0: // 기본 맵
+                                gameMaster.getMapManager().initializeDefaultBoard();
+                                gameMaster.setCurrentMapStyle("기본");
+                                break;
+                            case 1: // 원형 트랙
+                                gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
+                                gameMaster.setCurrentMapStyle("원형 트랙");
+                                break;
+                            case 2: // 블록 퍼즐
+                                gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
+                                gameMaster.setCurrentMapStyle("블록 퍼즐");
+                                break;
+                        }
+                        
+                        // GUI 모드로 설정하고 게임 시작
+                        gameMaster.setBoard(gameMaster.getMapManager().getBoard());
+                        game.setGameMaster(gameMaster);
+                        gameMaster.setGameGUI(game);  // GameGUI 참조 설정
+                        game.setVisible(true);
+                        
+                        // 게임 시작 효과음 재생
+                        playSpookySound();
                     } catch (IOException e) {
-                        System.out.println("맵 파일을 불러오는 중 오류가 발생했습니다: " + e.getMessage());
-                        return;
+                        JOptionPane.showMessageDialog(null, 
+                            "게임 시작 중 오류가 발생했습니다: " + e.getMessage(),
+                            "오류",
+                            JOptionPane.ERROR_MESSAGE);
                     }
-                    // 선택된 맵 스타일 설정
-                    switch(mapIndex) {
-                        case 0: // 기본 맵
-                            gameMaster.getMapManager().initializeDefaultBoard();
-                            gameMaster.setCurrentMapStyle("기본");
-                            break;
-                        case 1: // 원형 트랙
-                            gameMaster.getMapManager().loadMapFromFile("circular_track.txt");
-                            gameMaster.setCurrentMapStyle("원형 트랙");
-                            break;
-                        case 2: // 블록 퍼즐
-                            gameMaster.getMapManager().loadMapFromFile("block_puzzle.txt");
-                            gameMaster.setCurrentMapStyle("블록 퍼즐");
-                            break;
-                    }
-                    // 맵 매니저에서 생성된 보드를 GameMaster에 설정
-                    gameMaster.setBoard(gameMaster.getMapManager().getBoard());
-                    game.setGameMaster(gameMaster);
-                    game.setVisible(true);
-                    // 게임 시작 효과음 재생
-                    playSpookySound();
                 });
             });
 
@@ -549,6 +549,89 @@ public class MainMenu extends JFrame {
         dialog.add(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    // 제작자 정보 애니메이션 다이얼로그
+    private void showCreditsAnimation() {
+        JDialog dialog = new JDialog(this, "제작자들", true);
+        dialog.setUndecorated(true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+
+        JPanel panel = new JPanel(null) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 배경 그라데이션
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(20, 20, 30),
+                    0, getHeight(), new Color(40, 40, 60)
+                );
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        panel.setBackground(new Color(20, 20, 30));
+        dialog.add(panel);
+
+        // 제작자 이름 레이블 생성
+        String[] credits = {
+            "최지태 - 다들 수고 많으셨습니다",
+            "정연수 - 덕분에 좋은 경험 했습니다",
+            "김유민 - 남은 기간도 화이팅!!",
+            "이정호 - 프로젝트도 끝났으니 술 한잔",
+            "윤현기 - 하시죠~"
+        };
+        JLabel[] nameLabels = new JLabel[credits.length];
+        
+        for (int i = 0; i < credits.length; i++) {
+            nameLabels[i] = new JLabel(credits[i], SwingConstants.CENTER);
+            nameLabels[i].setFont(new Font("맑은 고딕", Font.BOLD, 20));
+            nameLabels[i].setForeground(Color.WHITE);
+            nameLabels[i].setBounds(0, dialog.getHeight(), dialog.getWidth(), 40);
+            
+            // 역할 부분에 색상 변경을 위한 HTML 적용
+            String[] parts = credits[i].split(" - ");
+            nameLabels[i].setText("<html><font color='white'>" + parts[0] + 
+                                "</font> - <font color='#FFB6C1'>" + parts[1] + "</font></html>");
+            
+            panel.add(nameLabels[i]);
+        }
+
+        // 애니메이션 타이머
+        Timer[] timers = new Timer[credits.length];
+        for (int i = 0; i < credits.length; i++) {
+            final int index = i;
+            timers[i] = new Timer(2000 + (i * 1500), new ActionListener() {
+                private int yPos = dialog.getHeight();
+                private Timer moveTimer;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    moveTimer = new Timer(10, e2 -> {
+                        yPos -= 2;
+                        nameLabels[index].setBounds(0, yPos, dialog.getWidth(), 40);
+                        
+                        if (yPos <= (index * 50) + 20) {
+                            moveTimer.stop();
+                        }
+                    });
+                    moveTimer.start();
+                }
+            });
+            timers[i].setRepeats(false);
+            timers[i].start();
+        }
+
+        // 닫기 버튼
+        Timer closeTimer = new Timer(12000, e -> dialog.dispose());
+        closeTimer.setRepeats(false);
+        closeTimer.start();
+
         dialog.setVisible(true);
     }
 

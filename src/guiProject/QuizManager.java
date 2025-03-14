@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class QuizManager {
     static ArrayList<Quiz> easy = new ArrayList<>(); //easy 문제 리스트
@@ -39,6 +38,7 @@ public class QuizManager {
 			Quiz quiz = new Quiz(content, example, answer);
 			addToListDifficulty(difficulty, quiz);
 		}
+		br.close();
 	}
 
     //난이도별 리스트에 문제 추가
@@ -53,15 +53,11 @@ public class QuizManager {
             case "HARD":
                 hard.add(quiz);
                 break;
-            default:
-                System.out.println("알 수 없는 난이도: " + difficulty);
         }
     }
     
     // 문제풀이 실패하면 false 성공하면 true
 	static boolean answerCheck(int location) {
-		Scanner sc = new Scanner(System.in);
-		
 		//도착한 이벤트 칸의 난이도 판별
 		String difficulty;
 	    if (location > 0 && location <= 10) {
@@ -90,8 +86,7 @@ public class QuizManager {
 	    System.out.println(quiz.getExample());
 	    
 	    //정답 입력
-	    System.out.print("\n정답을 입력하세요: ");
-	    String userAnswer = sc.nextLine();
+	    String userAnswer = System.console().readLine();
 
 	    // 정답 체크
 	    if (quiz.isCorrect(userAnswer)) {
@@ -104,7 +99,7 @@ public class QuizManager {
 	}
 	
 	//리스트의 난이도 판별
-	private static ArrayList<Quiz> getQuizListDifficulty(String difficulty) {
+	public static ArrayList<Quiz> getQuizListDifficulty(String difficulty) {
 	    switch (difficulty) {
 	        case "EASY":
 	            return easy;
