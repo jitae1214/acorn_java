@@ -42,10 +42,28 @@ class GameMaster {
 	}
 
 	// 주사위 던지는 메서드
-	private int diceRoll() {
-		buff = "normal"; // 주사위 굴릴 때마다 버프 초기화
-		return (int) (Math.random() * 6) + 1;
-	}
+//	public int diceRoll() {
+//		
+//		int dice = random.nextInt(6) + 1;
+//	    int buffedDice = applyBuff(dice);
+//	    
+//	    // "gDouble" 버프는 초기화하지 않음
+//	    if (buff == null || !buff.equals("gDouble")) {
+//	        buff = "normal"; // 플레이어 버프만 초기화
+//	    }
+//	    
+//	    return buffedDice;
+//	}
+
+    public int diceRoll() {
+    	Scanner sc = new Scanner(System.in);
+    	int dice = sc.nextInt();
+    	int buffedDice = applyBuff(dice);
+    	if (buff == null || !buff.equals("gDouble")) {
+	        buff = "normal"; // 플레이어 버프만 초기화
+	    }
+    	return buffedDice;
+    }
 
 	// 유저 움직이는 메서드
 	private int userMove(int distance) {
@@ -66,15 +84,16 @@ class GameMaster {
 	}
 
 	// 유령 이동 메서드
-	private void ghostMove() {
-		this.ghostLoc += this.ghostDistance;
-		System.out.println("유령이 이동했습니다.");
-		System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
-		if (this.ghostLoc >= this.userLoc) {
-			System.out.println("유령에게 잡혔습니다.");
-			System.out.println("게임이 종료되었습니다.");
-			System.exit(0);
-		}
+	public int ghostMove(int ghostDistance) {
+		 int actualGhostDistance = applyGhostBuff(ghostDistance);
+		    ghostLoc = ghostLoc + actualGhostDistance;
+		    
+		    // 유령 버프 사용 후 초기화
+		    if (buff != null && buff.equals("gDouble")) {
+		        buff = "normal";
+		    }
+		    
+		    return actualGhostDistance;
 	}
 
 	// 버프 효과를 적용하는 private 메서드
@@ -130,7 +149,15 @@ class GameMaster {
 					System.out.println("\n정답입니다!!!\n");
 				} else {
 					System.out.println("\n오답입니다...\n");
-					ghostMove();
+					userLoc = previousLoc; // 오답 시 이전 위치로 돌아감
+					ghostMove(ghostDistance);
+					System.out.println("유령이 이동했습니다.");
+					System.out.println("유령 위치: " + (ghostLoc + 1) + "번 칸");
+					if (ghostLoc >= getUserLoc()) {
+						System.out.println("유령에게 잡혔습니다.");
+						System.out.println("게임이 종료되었습니다.");
+						System.exit(0);
+					}
 				}
 			} else if (currentStage instanceof NormalStage) {
 				System.out.println("일반 칸에 도착하였습니다 어떠한 일도 일어나지 않았습니다");
